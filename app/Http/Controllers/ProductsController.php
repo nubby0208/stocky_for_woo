@@ -19,11 +19,104 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use \Gumlet\ImageResize;
+use WooCommerce;
 
 class ProductsController extends BaseController
 {
 
     //------------ Get ALL Products --------------\\
+
+    // public function index(request $request)
+    // {
+    //     $this->authorizeForUser($request->user('api'), 'view', Product::class);
+    //     // How many items do you want to display.
+    //     $perPage = $request->limit;
+    //     $pageStart = \Request::get('page', 1);
+    //     // Start displaying items from this number;
+    //     $offSet = ($pageStart * $perPage) - $perPage;
+    //     $order = $request->SortField;
+    //     $dir = $request->SortType;
+    //     $helpers = new helpers();
+    //     // Filter fields With Params to retrieve
+    //     $columns = array(0 => 'name', 1 => 'category_id', 2 => 'brand_id', 3 => 'code');
+    //     $param = array(0 => 'like', 1 => '=', 2 => '=', 3 => 'like');
+    //     $data = array();
+
+    //     $products = Product::with('unit', 'category', 'brand')
+    //         ->where('deleted_at', '=', null);
+
+    //     //Multiple Filter
+    //     $Filtred = $helpers->filter($products, $columns, $param, $request)
+    //     // Search With Multiple Param
+    //         ->where(function ($query) use ($request) {
+    //             return $query->when($request->filled('search'), function ($query) use ($request) {
+    //                 return $query->where('products.name', 'LIKE', "%{$request->search}%")
+    //                     ->orWhere('products.code', 'LIKE', "%{$request->search}%")
+    //                     ->orWhere(function ($query) use ($request) {
+    //                         return $query->whereHas('category', function ($q) use ($request) {
+    //                             $q->where('name', 'LIKE', "%{$request->search}%");
+    //                         });
+    //                     })
+    //                     ->orWhere(function ($query) use ($request) {
+    //                         return $query->whereHas('brand', function ($q) use ($request) {
+    //                             $q->where('name', 'LIKE', "%{$request->search}%");
+    //                         });
+    //                     });
+    //             });
+    //         });
+    //     $totalRows = $Filtred->count();
+    //     if($perPage == "-1"){
+    //         $perPage = $totalRows;
+    //     }
+    //     $products = $Filtred->offset($offSet)
+    //         ->limit($perPage)
+    //         ->orderBy($order, $dir)
+    //         ->get();
+
+    //     foreach ($products as $product) {
+    //         $item['id'] = $product->id;
+    //         $item['code'] = $product->code;
+    //         $item['name'] = $product->name;
+    //         $item['category'] = $product['category']->name;
+    //         $item['brand'] = $product['brand'] ? $product['brand']->name : 'N/D';
+    //         $item['unit'] = $product['unit']->ShortName;
+    //         $item['price'] = $product->price;
+
+    //         $product_warehouse_data = product_warehouse::where('product_id', $product->id)
+    //             ->where('deleted_at', '=', null)
+    //             ->get();
+    //         $total_qty = 0;
+    //         foreach ($product_warehouse_data as $product_warehouse) {
+    //             $total_qty += $product_warehouse->qte;
+    //             $item['quantity'] = $total_qty;
+    //         }
+
+    //         $firstimage = explode(',', $product->image);
+    //         $item['image'] = $firstimage[0];
+
+    //         $data[] = $item;
+    //     }
+
+    //     //get warehouses assigned to user
+    //     $user_auth = auth()->user();
+    //     if($user_auth->is_all_warehouses){
+    //         $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+    //     }else{
+    //         $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+    //         $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+    //     }
+
+    //     $categories = Category::where('deleted_at', null)->get(['id', 'name']);
+    //     $brands = Brand::where('deleted_at', null)->get(['id', 'name']);
+
+    //     return response()->json([
+    //         'warehouses' => $warehouses,
+    //         'categories' => $categories,
+    //         'brands' => $brands,
+    //         'products' => $data,
+    //         'totalRows' => $totalRows,
+    //     ]);
+    // }
 
     public function index(request $request)
     {
@@ -41,57 +134,50 @@ class ProductsController extends BaseController
         $param = array(0 => 'like', 1 => '=', 2 => '=', 3 => 'like');
         $data = array();
 
-        $products = Product::with('unit', 'category', 'brand')
-            ->where('deleted_at', '=', null);
+        // $products = Product::with('unit', 'category', 'brand')
+        //     ->where('deleted_at', '=', null);
+        $products = $this->product_list_woo();
+        // $product = $this->show_woo(9559);
+        // $products = [{'name': '123'},{'name': '234'},{'name': '345'},{'name': '456'}];
 
         //Multiple Filter
-        $Filtred = $helpers->filter($products, $columns, $param, $request)
-        // Search With Multiple Param
-            ->where(function ($query) use ($request) {
-                return $query->when($request->filled('search'), function ($query) use ($request) {
-                    return $query->where('products.name', 'LIKE', "%{$request->search}%")
-                        ->orWhere('products.code', 'LIKE', "%{$request->search}%")
-                        ->orWhere(function ($query) use ($request) {
-                            return $query->whereHas('category', function ($q) use ($request) {
-                                $q->where('name', 'LIKE', "%{$request->search}%");
-                            });
-                        })
-                        ->orWhere(function ($query) use ($request) {
-                            return $query->whereHas('brand', function ($q) use ($request) {
-                                $q->where('name', 'LIKE', "%{$request->search}%");
-                            });
-                        });
-                });
-            });
-        $totalRows = $Filtred->count();
+        // $Filtred = $helpers->filter($products, $columns, $param, $request)
+        // // Search With Multiple Param
+        //     ->where(function ($query) use ($request) {
+        //         return $query->when($request->filled('search'), function ($query) use ($request) {
+        //             return $query->where('products.name', 'LIKE', "%{$request->search}%")
+        //                 ->orWhere('products.code', 'LIKE', "%{$request->search}%")
+        //                 ->orWhere(function ($query) use ($request) {
+        //                     return $query->whereHas('category', function ($q) use ($request) {
+        //                         $q->where('name', 'LIKE', "%{$request->search}%");
+        //                     });
+        //                 })
+        //                 ->orWhere(function ($query) use ($request) {
+        //                     return $query->whereHas('brand', function ($q) use ($request) {
+        //                         $q->where('name', 'LIKE', "%{$request->search}%");
+        //                     });
+        //                 });
+        //         });
+        //     });
+        $Filtred = $products;
+
+        $totalRows = count($Filtred);
         if($perPage == "-1"){
             $perPage = $totalRows;
         }
-        $products = $Filtred->offset($offSet)
-            ->limit($perPage)
-            ->orderBy($order, $dir)
-            ->get();
+        $products = array_slice($Filtred,$offSet,$perPage);
 
         foreach ($products as $product) {
             $item['id'] = $product->id;
-            $item['code'] = $product->code;
+            $item['code'] = $product->sku;
             $item['name'] = $product->name;
-            $item['category'] = $product['category']->name;
-            $item['brand'] = $product['brand'] ? $product['brand']->name : 'N/D';
-            $item['unit'] = $product['unit']->ShortName;
+            $item['category'] = 'cat';
+            $item['brand'] = 'bra';
+            $item['unit'] = 'uni';
             $item['price'] = $product->price;
+            $item['quantity'] = 13;
 
-            $product_warehouse_data = product_warehouse::where('product_id', $product->id)
-                ->where('deleted_at', '=', null)
-                ->get();
-            $total_qty = 0;
-            foreach ($product_warehouse_data as $product_warehouse) {
-                $total_qty += $product_warehouse->qte;
-                $item['quantity'] = $total_qty;
-            }
-
-            $firstimage = explode(',', $product->image);
-            $item['image'] = $firstimage[0];
+            $item['image'] = 'ima';
 
             $data[] = $item;
         }
@@ -115,6 +201,11 @@ class ProductsController extends BaseController
             'products' => $data,
             'totalRows' => $totalRows,
         ]);
+    }
+
+    public function product_list_woo(){
+        $result = WooCommerce::all('products');
+        return $result;
     }
 
     //-------------- Store new  Product  ---------------\\
