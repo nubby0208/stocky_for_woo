@@ -405,236 +405,298 @@ class ProductsController extends BaseController
     //-------------- Update Product  ---------------\\
     //-----------------------------------------------\\
 
+    // public function update(Request $request, $id)
+    // {
+    //     $this->authorizeForUser($request->user('api'), 'update', Product::class);
+    //     try {
+    //         $this->validate($request, [
+    //             'code' => 'required|unique:products',
+    //             'code' => Rule::unique('products')->ignore($id)->where(function ($query) {
+    //                 return $query->where('deleted_at', '=', null);
+    //             }),
+    //             'name' => 'required',
+    //             'Type_barcode' => 'required',
+    //             'price' => 'required',
+    //             'category_id' => 'required',
+    //             'cost' => 'required',
+    //             'unit_id' => 'required',
+    //         ], [
+    //             'code.unique' => 'This code already used. Generate Now',
+    //             'code.required' => 'This field is required',
+    //         ]);
+
+    //         \DB::transaction(function () use ($request, $id) {
+
+    //             $Product = Product::where('id', $id)
+    //                 ->where('deleted_at', '=', null)
+    //                 ->first();
+
+    //             //-- Update Product
+    //             $Product->name = $request['name'];
+    //             $Product->code = $request['code'];
+    //             $Product->Type_barcode = $request['Type_barcode'];
+    //             $Product->price = $request['price'];
+    //             $Product->category_id = $request['category_id'];
+    //             $Product->brand_id = $request['brand_id'] == 'null' ?Null: $request['brand_id'];
+    //             $Product->TaxNet = $request['TaxNet'];
+    //             $Product->tax_method = $request['tax_method'];
+    //             $Product->note = $request['note'];
+    //             $Product->cost = $request['cost'];
+    //             $Product->unit_id = $request['unit_id'];
+    //             $Product->unit_sale_id = $request['unit_sale_id'] ? $request['unit_sale_id'] : $request['unit_id'];
+    //             $Product->unit_purchase_id = $request['unit_purchase_id'] ? $request['unit_purchase_id'] : $request['unit_id'];
+    //             $Product->stock_alert = $request['stock_alert'];
+    //             $Product->is_variant = $request['is_variant'] == 'true' ? 1 : 0;
+    //             $Product->is_imei = $request['is_imei'] == 'true' ? 1 : 0;
+    //             $Product->not_selling = $request['not_selling'] == 'true' ? 1 : 0;
+    //             // Store Variants Product
+    //             $oldVariants = ProductVariant::where('product_id', $id)
+    //                 ->where('deleted_at', null)
+    //                 ->get();
+
+    //             $warehouses = Warehouse::where('deleted_at', null)
+    //                 ->pluck('id')
+    //                 ->toArray();
+
+
+    //             if ($request['is_variant'] == 'true') {
+
+    //                 if ($oldVariants->isNotEmpty()) {
+    //                     $new_variants_id = [];
+    //                     $var = 'id';
+
+    //                     foreach ($request['variants'] as $new_id) {
+    //                         if (array_key_exists($var, $new_id)) {
+    //                             $new_variants_id[] = $new_id['id'];
+    //                         } else {
+    //                             $new_variants_id[] = 0;
+    //                         }
+    //                     }
+
+    //                     foreach ($oldVariants as $key => $value) {
+    //                         $old_variants_id[] = $value->id;
+
+    //                         // Delete Variant
+    //                         if (!in_array($old_variants_id[$key], $new_variants_id)) {
+    //                             $ProductVariant = ProductVariant::findOrFail($value->id);
+    //                             $ProductVariant->deleted_at = Carbon::now();
+    //                             $ProductVariant->save();
+
+    //                             $ProductWarehouse = product_warehouse::where('product_variant_id', $value->id)
+    //                                 ->update(['deleted_at' => Carbon::now()]);
+    //                         }
+    //                     }
+
+    //                     foreach ($request['variants'] as $key => $variant) {
+    //                         if (array_key_exists($var, $variant)) {
+
+    //                             $ProductVariantDT = new ProductVariant;
+
+    //                             //-- Field Required
+    //                             $ProductVariantDT->product_id = $variant['product_id'];
+    //                             $ProductVariantDT->name = $variant['text'];
+    //                             $ProductVariantDT->qty = $variant['qty'];
+    //                             $ProductVariantUP['product_id'] = $variant['product_id'];
+    //                             $ProductVariantUP['name'] = $variant['text'];
+    //                             $ProductVariantUP['qty'] = $variant['qty'];
+
+    //                         } else {
+    //                             $ProductVariantDT = new ProductVariant;
+
+    //                             //-- Field Required
+    //                             $ProductVariantDT->product_id = $id;
+    //                             $ProductVariantDT->name = $variant['text'];
+    //                             $ProductVariantDT->qty = 0.00;
+    //                             $ProductVariantUP['product_id'] = $id;
+    //                             $ProductVariantUP['name'] = $variant['text'];
+    //                             $ProductVariantUP['qty'] = 0.00;
+    //                         }
+
+    //                         if (!in_array($new_variants_id[$key], $old_variants_id)) {
+    //                             $ProductVariantDT->save();
+
+    //                             //--Store Product warehouse
+    //                             if ($warehouses) {
+    //                                 $product_warehouse= [];
+    //                                 foreach ($warehouses as $warehouse) {
+
+    //                                     $product_warehouse[] = [
+    //                                         'product_id' => $id,
+    //                                         'warehouse_id' => $warehouse,
+    //                                         'product_variant_id' => $ProductVariantDT->id,
+    //                                     ];
+
+    //                                 }
+    //                                 product_warehouse::insert($product_warehouse);
+    //                             }
+    //                         } else {
+    //                             ProductVariant::where('id', $variant['id'])->update($ProductVariantUP);
+    //                         }
+    //                     }
+
+    //                 } else {
+    //                     $ProducttWarehouse = product_warehouse::where('product_id', $id)
+    //                         ->update([
+    //                             'deleted_at' => Carbon::now(),
+    //                         ]);
+
+    //                     foreach ($request['variants'] as $variant) {
+    //                         $product_warehouse_DT = [];
+    //                         $ProductVarDT = new ProductVariant;
+
+    //                         //-- Field Required
+    //                         $ProductVarDT->product_id = $id;
+    //                         $ProductVarDT->name = $variant['text'];
+    //                         $ProductVarDT->save();
+
+    //                         //-- Store Product warehouse
+    //                         if ($warehouses) {
+    //                             foreach ($warehouses as $warehouse) {
+
+    //                                 $product_warehouse_DT[] = [
+    //                                     'product_id' => $id,
+    //                                     'warehouse_id' => $warehouse,
+    //                                     'product_variant_id' => $ProductVarDT->id,
+    //                                 ];
+    //                             }
+
+    //                             product_warehouse::insert($product_warehouse_DT);
+    //                         }
+    //                     }
+
+    //                 }
+    //             } else {
+    //                 if ($oldVariants->isNotEmpty()) {
+    //                     foreach ($oldVariants as $old_var) {
+    //                         $var_old = ProductVariant::where('product_id', $old_var['product_id'])
+    //                             ->where('deleted_at', null)
+    //                             ->first();
+    //                         $var_old->deleted_at = Carbon::now();
+    //                         $var_old->save();
+
+    //                         $ProducttWarehouse = product_warehouse::where('product_variant_id', $old_var['id'])
+    //                             ->update([
+    //                                 'deleted_at' => Carbon::now(),
+    //                             ]);
+    //                     }
+
+    //                     if ($warehouses) {
+    //                         foreach ($warehouses as $warehouse) {
+
+    //                             $product_warehouse[] = [
+    //                                 'product_id' => $id,
+    //                                 'warehouse_id' => $warehouse,
+    //                                 'product_variant_id' => null,
+    //                             ];
+
+    //                         }
+    //                         product_warehouse::insert($product_warehouse);
+    //                     }
+    //                 }
+    //             }
+
+    //             if ($request['images'] === null) {
+
+    //                 if ($Product->image !== null) {
+    //                     foreach (explode(',', $Product->image) as $img) {
+    //                         $pathIMG = public_path() . '/images/products/' . $img;
+    //                         if (file_exists($pathIMG)) {
+    //                             if ($img != 'no-image.png') {
+    //                                 @unlink($pathIMG);
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //                 $filename = 'no-image.png';
+    //             } else {
+    //                 if ($Product->image !== null) {
+    //                     foreach (explode(',', $Product->image) as $img) {
+    //                         $pathIMG = public_path() . '/images/products/' . $img;
+    //                         if (file_exists($pathIMG)) {
+    //                             if ($img != 'no-image.png') {
+    //                                 @unlink($pathIMG);
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //                 $files = $request['images'];
+    //                 foreach ($files as $file) {
+    //                     $fileData = ImageResize::createFromString(base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $file['path'])));
+    //                     $fileData->resize(200, 200);
+    //                     $name = rand(11111111, 99999999) . $file['name'];
+    //                     $path = public_path() . '/images/products/';
+    //                     $success = file_put_contents($path . $name, $fileData);
+    //                     $images[] = $name;
+    //                 }
+    //                 $filename = implode(",", $images);
+    //             }
+
+    //             $Product->image = $filename;
+    //             $Product->save();
+
+    //         }, 10);
+
+    //         return response()->json(['success' => true]);
+
+    //     } catch (ValidationException $e) {
+    //         return response()->json([
+    //             'status' => 422,
+    //             'msg' => 'error',
+    //             'errors' => $e->errors(),
+    //         ], 422);
+    //     }
+
+    // }
+
     public function update(Request $request, $id)
     {
         $this->authorizeForUser($request->user('api'), 'update', Product::class);
         try {
-            $this->validate($request, [
-                'code' => 'required|unique:products',
-                'code' => Rule::unique('products')->ignore($id)->where(function ($query) {
-                    return $query->where('deleted_at', '=', null);
-                }),
-                'name' => 'required',
-                'Type_barcode' => 'required',
-                'price' => 'required',
-                'category_id' => 'required',
-                'cost' => 'required',
-                'unit_id' => 'required',
-            ], [
-                'code.unique' => 'This code already used. Generate Now',
-                'code.required' => 'This field is required',
-            ]);
+            // $this->validate($request, [
+            //     'code' => 'required|unique:products',
+            //     'code' => Rule::unique('products')->ignore($id)->where(function ($query) {
+            //         return $query->where('deleted_at', '=', null);
+            //     }),
+            //     'name' => 'required',
+            //     'Type_barcode' => 'required',
+            //     'price' => 'required',
+            //     'category_id' => 'required',
+            //     'cost' => 'required',
+            //     'unit_id' => 'required',
+            // ], [
+            //     'code.unique' => 'This code already used. Generate Now',
+            //     'code.required' => 'This field is required',
+            // ]);
 
-            \DB::transaction(function () use ($request, $id) {
+            $data = [
+                'name' => $request['name'],
+                'type' => 'simple',
+                'regular_price' => $request['price'],
+                'description' => 'full description',
+                'short_description' => 'short description',
+                'sku' => $request['code'],
+                'stock_quantity' => $request['quantity'],
+                'attributes' => [
+                    [
+                        'id' => $request['brand_id']
+                    ],
+                ],
+                'categories' => [
+                    [
+                        'id' => $request['category_id']
+                    ],
+                ],
+                'images' => [
+                    [
+                        'src' => 'http://demo.woothemes.com/woocommerce/wp-content/uploads/sites/56/2013/06/T_2_front.jpg'
+                    ],
+                    [
+                        'src' => 'http://demo.woothemes.com/woocommerce/wp-content/uploads/sites/56/2013/06/T_2_back.jpg'
+                    ]
+                ]
+            ];
 
-                $Product = Product::where('id', $id)
-                    ->where('deleted_at', '=', null)
-                    ->first();
-
-                //-- Update Product
-                $Product->name = $request['name'];
-                $Product->code = $request['code'];
-                $Product->Type_barcode = $request['Type_barcode'];
-                $Product->price = $request['price'];
-                $Product->category_id = $request['category_id'];
-                $Product->brand_id = $request['brand_id'] == 'null' ?Null: $request['brand_id'];
-                $Product->TaxNet = $request['TaxNet'];
-                $Product->tax_method = $request['tax_method'];
-                $Product->note = $request['note'];
-                $Product->cost = $request['cost'];
-                $Product->unit_id = $request['unit_id'];
-                $Product->unit_sale_id = $request['unit_sale_id'] ? $request['unit_sale_id'] : $request['unit_id'];
-                $Product->unit_purchase_id = $request['unit_purchase_id'] ? $request['unit_purchase_id'] : $request['unit_id'];
-                $Product->stock_alert = $request['stock_alert'];
-                $Product->is_variant = $request['is_variant'] == 'true' ? 1 : 0;
-                $Product->is_imei = $request['is_imei'] == 'true' ? 1 : 0;
-                $Product->not_selling = $request['not_selling'] == 'true' ? 1 : 0;
-                // Store Variants Product
-                $oldVariants = ProductVariant::where('product_id', $id)
-                    ->where('deleted_at', null)
-                    ->get();
-
-                $warehouses = Warehouse::where('deleted_at', null)
-                    ->pluck('id')
-                    ->toArray();
-
-
-                if ($request['is_variant'] == 'true') {
-
-                    if ($oldVariants->isNotEmpty()) {
-                        $new_variants_id = [];
-                        $var = 'id';
-
-                        foreach ($request['variants'] as $new_id) {
-                            if (array_key_exists($var, $new_id)) {
-                                $new_variants_id[] = $new_id['id'];
-                            } else {
-                                $new_variants_id[] = 0;
-                            }
-                        }
-
-                        foreach ($oldVariants as $key => $value) {
-                            $old_variants_id[] = $value->id;
-
-                            // Delete Variant
-                            if (!in_array($old_variants_id[$key], $new_variants_id)) {
-                                $ProductVariant = ProductVariant::findOrFail($value->id);
-                                $ProductVariant->deleted_at = Carbon::now();
-                                $ProductVariant->save();
-
-                                $ProductWarehouse = product_warehouse::where('product_variant_id', $value->id)
-                                    ->update(['deleted_at' => Carbon::now()]);
-                            }
-                        }
-
-                        foreach ($request['variants'] as $key => $variant) {
-                            if (array_key_exists($var, $variant)) {
-
-                                $ProductVariantDT = new ProductVariant;
-
-                                //-- Field Required
-                                $ProductVariantDT->product_id = $variant['product_id'];
-                                $ProductVariantDT->name = $variant['text'];
-                                $ProductVariantDT->qty = $variant['qty'];
-                                $ProductVariantUP['product_id'] = $variant['product_id'];
-                                $ProductVariantUP['name'] = $variant['text'];
-                                $ProductVariantUP['qty'] = $variant['qty'];
-
-                            } else {
-                                $ProductVariantDT = new ProductVariant;
-
-                                //-- Field Required
-                                $ProductVariantDT->product_id = $id;
-                                $ProductVariantDT->name = $variant['text'];
-                                $ProductVariantDT->qty = 0.00;
-                                $ProductVariantUP['product_id'] = $id;
-                                $ProductVariantUP['name'] = $variant['text'];
-                                $ProductVariantUP['qty'] = 0.00;
-                            }
-
-                            if (!in_array($new_variants_id[$key], $old_variants_id)) {
-                                $ProductVariantDT->save();
-
-                                //--Store Product warehouse
-                                if ($warehouses) {
-                                    $product_warehouse= [];
-                                    foreach ($warehouses as $warehouse) {
-
-                                        $product_warehouse[] = [
-                                            'product_id' => $id,
-                                            'warehouse_id' => $warehouse,
-                                            'product_variant_id' => $ProductVariantDT->id,
-                                        ];
-
-                                    }
-                                    product_warehouse::insert($product_warehouse);
-                                }
-                            } else {
-                                ProductVariant::where('id', $variant['id'])->update($ProductVariantUP);
-                            }
-                        }
-
-                    } else {
-                        $ProducttWarehouse = product_warehouse::where('product_id', $id)
-                            ->update([
-                                'deleted_at' => Carbon::now(),
-                            ]);
-
-                        foreach ($request['variants'] as $variant) {
-                            $product_warehouse_DT = [];
-                            $ProductVarDT = new ProductVariant;
-
-                            //-- Field Required
-                            $ProductVarDT->product_id = $id;
-                            $ProductVarDT->name = $variant['text'];
-                            $ProductVarDT->save();
-
-                            //-- Store Product warehouse
-                            if ($warehouses) {
-                                foreach ($warehouses as $warehouse) {
-
-                                    $product_warehouse_DT[] = [
-                                        'product_id' => $id,
-                                        'warehouse_id' => $warehouse,
-                                        'product_variant_id' => $ProductVarDT->id,
-                                    ];
-                                }
-
-                                product_warehouse::insert($product_warehouse_DT);
-                            }
-                        }
-
-                    }
-                } else {
-                    if ($oldVariants->isNotEmpty()) {
-                        foreach ($oldVariants as $old_var) {
-                            $var_old = ProductVariant::where('product_id', $old_var['product_id'])
-                                ->where('deleted_at', null)
-                                ->first();
-                            $var_old->deleted_at = Carbon::now();
-                            $var_old->save();
-
-                            $ProducttWarehouse = product_warehouse::where('product_variant_id', $old_var['id'])
-                                ->update([
-                                    'deleted_at' => Carbon::now(),
-                                ]);
-                        }
-
-                        if ($warehouses) {
-                            foreach ($warehouses as $warehouse) {
-
-                                $product_warehouse[] = [
-                                    'product_id' => $id,
-                                    'warehouse_id' => $warehouse,
-                                    'product_variant_id' => null,
-                                ];
-
-                            }
-                            product_warehouse::insert($product_warehouse);
-                        }
-                    }
-                }
-
-                if ($request['images'] === null) {
-
-                    if ($Product->image !== null) {
-                        foreach (explode(',', $Product->image) as $img) {
-                            $pathIMG = public_path() . '/images/products/' . $img;
-                            if (file_exists($pathIMG)) {
-                                if ($img != 'no-image.png') {
-                                    @unlink($pathIMG);
-                                }
-                            }
-                        }
-                    }
-                    $filename = 'no-image.png';
-                } else {
-                    if ($Product->image !== null) {
-                        foreach (explode(',', $Product->image) as $img) {
-                            $pathIMG = public_path() . '/images/products/' . $img;
-                            if (file_exists($pathIMG)) {
-                                if ($img != 'no-image.png') {
-                                    @unlink($pathIMG);
-                                }
-                            }
-                        }
-                    }
-                    $files = $request['images'];
-                    foreach ($files as $file) {
-                        $fileData = ImageResize::createFromString(base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $file['path'])));
-                        $fileData->resize(200, 200);
-                        $name = rand(11111111, 99999999) . $file['name'];
-                        $path = public_path() . '/images/products/';
-                        $success = file_put_contents($path . $name, $fileData);
-                        $images[] = $name;
-                    }
-                    $filename = implode(",", $images);
-                }
-
-                $Product->image = $filename;
-                $Product->save();
-
-            }, 10);
+            $product = $this->update_product_woo($id, $data);
 
             return response()->json(['success' => true]);
 
@@ -646,6 +708,11 @@ class ProductsController extends BaseController
             ], 422);
         }
 
+    }
+
+    public function update_product_woo($id, $data){
+        $result = WooCommerce::update('products/'.$id, $data);
+        return $result;
     }
 
     //-------------- Remove Product  ---------------\\
@@ -1066,118 +1133,171 @@ class ProductsController extends BaseController
 
     //---------------- Show Form Edit Product ---------------\\
 
+    // public function edit(Request $request, $id)
+    // {
+
+    //     $this->authorizeForUser($request->user('api'), 'update', Product::class);
+
+    //     $Product = Product::where('deleted_at', '=', null)->findOrFail($id);
+
+    //     $item['id'] = $Product->id;
+    //     $item['code'] = $Product->code;
+    //     $item['Type_barcode'] = $Product->Type_barcode;
+    //     $item['name'] = $Product->name;
+    //     if ($Product->category_id) {
+    //         if (Category::where('id', $Product->category_id)
+    //             ->where('deleted_at', '=', null)
+    //             ->first()) {
+    //             $item['category_id'] = $Product->category_id;
+    //         } else {
+    //             $item['category_id'] = '';
+    //         }
+    //     } else {
+    //         $item['category_id'] = '';
+    //     }
+
+    //     if ($Product->brand_id) {
+    //         if (Brand::where('id', $Product->brand_id)
+    //             ->where('deleted_at', '=', null)
+    //             ->first()) {
+    //             $item['brand_id'] = $Product->brand_id;
+    //         } else {
+    //             $item['brand_id'] = '';
+    //         }
+    //     } else {
+    //         $item['brand_id'] = '';
+    //     }
+
+    //     if ($Product->unit_id) {
+    //         if (Unit::where('id', $Product->unit_id)
+    //             ->where('deleted_at', '=', null)
+    //             ->first()) {
+    //             $item['unit_id'] = $Product->unit_id;
+    //         } else {
+    //             $item['unit_id'] = '';
+    //         }
+
+    //         if (Unit::where('id', $Product->unit_sale_id)
+    //             ->where('deleted_at', '=', null)
+    //             ->first()) {
+    //             $item['unit_sale_id'] = $Product->unit_sale_id;
+    //         } else {
+    //             $item['unit_sale_id'] = '';
+    //         }
+
+    //         if (Unit::where('id', $Product->unit_purchase_id)
+    //             ->where('deleted_at', '=', null)
+    //             ->first()) {
+    //             $item['unit_purchase_id'] = $Product->unit_purchase_id;
+    //         } else {
+    //             $item['unit_purchase_id'] = '';
+    //         }
+
+    //     } else {
+    //         $item['unit_id'] = '';
+    //     }
+
+    //     $item['tax_method'] = $Product->tax_method;
+    //     $item['price'] = $Product->price;
+    //     $item['cost'] = $Product->cost;
+    //     $item['stock_alert'] = $Product->stock_alert;
+    //     $item['TaxNet'] = $Product->TaxNet;
+    //     $item['note'] = $Product->note ? $Product->note : '';
+    //     $item['images'] = [];
+    //     if ($Product->image != '' && $Product->image != 'no-image.png') {
+    //         foreach (explode(',', $Product->image) as $img) {
+    //             $path = public_path() . '/images/products/' . $img;
+    //             if (file_exists($path)) {
+    //                 $itemImg['name'] = $img;
+    //                 $type = pathinfo($path, PATHINFO_EXTENSION);
+    //                 $data = file_get_contents($path);
+    //                 $itemImg['path'] = 'data:image/' . $type . ';base64,' . base64_encode($data);
+
+    //                 $item['images'][] = $itemImg;
+    //             }
+    //         }
+    //     } else {
+    //         $item['images'] = [];
+    //     }
+    //     if ($Product->is_variant) {
+    //         $item['is_variant'] = true;
+    //         $productsVariants = ProductVariant::where('product_id', $id)
+    //             ->where('deleted_at', null)
+    //             ->get();
+    //         foreach ($productsVariants as $variant) {
+    //             $variant_item['id'] = $variant->id;
+    //             $variant_item['text'] = $variant->name;
+    //             $variant_item['qty'] = $variant->qty;
+    //             $variant_item['product_id'] = $variant->product_id;
+    //             $item['ProductVariant'][] = $variant_item;
+    //         }
+    //     } else {
+    //         $item['is_variant'] = false;
+    //         $item['ProductVariant'] = [];
+    //     }
+
+    //     $item['is_imei'] = $Product->is_imei?true:false;
+    //     $item['not_selling'] = $Product->not_selling?true:false;
+
+    //     $data = $item;
+    //     $categories = Category::where('deleted_at', null)->get(['id', 'name']);
+    //     $brands = Brand::where('deleted_at', null)->get(['id', 'name']);
+
+    //     $product_units = Unit::where('id', $Product->unit_id)
+    //                           ->orWhere('base_unit', $Product->unit_id)
+    //                           ->where('deleted_at', null)
+    //                           ->get();
+
+      
+    //     $units = Unit::where('deleted_at', null)
+    //         ->where('base_unit', null)
+    //         ->get();
+
+    //     return response()->json([
+    //         'product' => $data,
+    //         'categories' => $categories,
+    //         'brands' => $brands,
+    //         'units' => $units,
+    //         'units_sub' => $product_units,
+    //     ]);
+
+    // }
+
     public function edit(Request $request, $id)
     {
 
         $this->authorizeForUser($request->user('api'), 'update', Product::class);
 
-        $Product = Product::where('deleted_at', '=', null)->findOrFail($id);
+        $Product = $this->show_woo($id);
 
         $item['id'] = $Product->id;
-        $item['code'] = $Product->code;
-        $item['Type_barcode'] = $Product->Type_barcode;
+        $item['code'] = $Product->sku;
+        $item['Type_barcode'] = 'Type_barcode';
         $item['name'] = $Product->name;
-        if ($Product->category_id) {
-            if (Category::where('id', $Product->category_id)
-                ->where('deleted_at', '=', null)
-                ->first()) {
-                $item['category_id'] = $Product->category_id;
-            } else {
-                $item['category_id'] = '';
-            }
-        } else {
-            $item['category_id'] = '';
-        }
-
-        if ($Product->brand_id) {
-            if (Brand::where('id', $Product->brand_id)
-                ->where('deleted_at', '=', null)
-                ->first()) {
-                $item['brand_id'] = $Product->brand_id;
-            } else {
-                $item['brand_id'] = '';
-            }
-        } else {
-            $item['brand_id'] = '';
-        }
-
-        if ($Product->unit_id) {
-            if (Unit::where('id', $Product->unit_id)
-                ->where('deleted_at', '=', null)
-                ->first()) {
-                $item['unit_id'] = $Product->unit_id;
-            } else {
-                $item['unit_id'] = '';
-            }
-
-            if (Unit::where('id', $Product->unit_sale_id)
-                ->where('deleted_at', '=', null)
-                ->first()) {
-                $item['unit_sale_id'] = $Product->unit_sale_id;
-            } else {
-                $item['unit_sale_id'] = '';
-            }
-
-            if (Unit::where('id', $Product->unit_purchase_id)
-                ->where('deleted_at', '=', null)
-                ->first()) {
-                $item['unit_purchase_id'] = $Product->unit_purchase_id;
-            } else {
-                $item['unit_purchase_id'] = '';
-            }
-
-        } else {
-            $item['unit_id'] = '';
-        }
-
-        $item['tax_method'] = $Product->tax_method;
+        $item['category_id'] = 0;
+        $item['brand_id'] = 0;
+        $item['unit_id'] = 0;
+        $item['unit_sale_id'] = 0;
+        $item['unit_purchase_id'] = 0;
+        $item['tax_method'] = 'tax_method';
         $item['price'] = $Product->price;
-        $item['cost'] = $Product->cost;
-        $item['stock_alert'] = $Product->stock_alert;
-        $item['TaxNet'] = $Product->TaxNet;
-        $item['note'] = $Product->note ? $Product->note : '';
+        $item['cost'] = 10;
+        $item['stock_alert'] = 'stock_alert';
+        $item['TaxNet'] = 10;
+        $item['note'] = '';
         $item['images'] = [];
-        if ($Product->image != '' && $Product->image != 'no-image.png') {
-            foreach (explode(',', $Product->image) as $img) {
-                $path = public_path() . '/images/products/' . $img;
-                if (file_exists($path)) {
-                    $itemImg['name'] = $img;
-                    $type = pathinfo($path, PATHINFO_EXTENSION);
-                    $data = file_get_contents($path);
-                    $itemImg['path'] = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        $item['is_variant'] = false;
+        $item['ProductVariant'] = [];
 
-                    $item['images'][] = $itemImg;
-                }
-            }
-        } else {
-            $item['images'] = [];
-        }
-        if ($Product->is_variant) {
-            $item['is_variant'] = true;
-            $productsVariants = ProductVariant::where('product_id', $id)
-                ->where('deleted_at', null)
-                ->get();
-            foreach ($productsVariants as $variant) {
-                $variant_item['id'] = $variant->id;
-                $variant_item['text'] = $variant->name;
-                $variant_item['qty'] = $variant->qty;
-                $variant_item['product_id'] = $variant->product_id;
-                $item['ProductVariant'][] = $variant_item;
-            }
-        } else {
-            $item['is_variant'] = false;
-            $item['ProductVariant'] = [];
-        }
-
-        $item['is_imei'] = $Product->is_imei?true:false;
-        $item['not_selling'] = $Product->not_selling?true:false;
+        $item['is_imei'] = false;
+        $item['not_selling'] = false;
 
         $data = $item;
         $categories = Category::where('deleted_at', null)->get(['id', 'name']);
         $brands = Brand::where('deleted_at', null)->get(['id', 'name']);
 
-        $product_units = Unit::where('id', $Product->unit_id)
-                              ->orWhere('base_unit', $Product->unit_id)
+        $product_units = Unit::where('id', 1)
+                              ->orWhere('base_unit', 1)
                               ->where('deleted_at', null)
                               ->get();
 
@@ -1194,6 +1314,11 @@ class ProductsController extends BaseController
             'units_sub' => $product_units,
         ]);
 
+    }
+
+    public function show_woo($id){
+        $result = WooCommerce::find('products/'.$id);
+        return $result;
     }
 
     // import Products
