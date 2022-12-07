@@ -204,8 +204,18 @@ class ProductsController extends BaseController
     }
 
     public function product_list_woo(){
-        $result = WooCommerce::all('products');
-        return $result;
+        $page = 1;
+        $products = [];
+        $all_products = [];
+        do{
+            try {
+                $products = WooCommerce::all('products?per_page=100&page='.$page);
+            }catch(HttpClientException $e){
+            }
+        $all_products = array_merge($all_products,$products);
+        $page++;
+        } while (count($products) > 0);
+        return $all_products;
     }
 
     //-------------- Store new  Product  ---------------\\
