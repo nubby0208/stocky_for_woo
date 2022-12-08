@@ -31,11 +31,142 @@ use App\Models\PaymentWithCreditCard;
 use DB;
 use PDF;
 use \Nwidart\Modules\Facades\Module;
+use WooCommerce;
 
 class SalesController extends BaseController
 {
 
     //------------- GET ALL SALES -----------\\
+
+    // public function index(request $request)
+    // {
+    //     $this->authorizeForUser($request->user('api'), 'view', Sale::class);
+    //     $role = Auth::user()->roles()->first();
+    //     $view_records = Role::findOrFail($role->id)->inRole('record_view');
+    //     // How many items do you want to display.
+    //     $perPage = $request->limit;
+
+    //     $pageStart = \Request::get('page', 1);
+    //     // Start displaying items from this number;
+    //     $offSet = ($pageStart * $perPage) - $perPage;
+    //     $order = $request->SortField;
+    //     $dir = $request->SortType;
+    //     $helpers = new helpers();
+    //     // Filter fields With Params to retrieve
+    //     $param = array(
+    //         0 => 'like',
+    //         1 => 'like',
+    //         2 => '=',
+    //         3 => 'like',
+    //         4 => '=',
+    //         5 => '=',
+    //         6 => 'like',
+    //     );
+    //     $columns = array(
+    //         0 => 'Ref',
+    //         1 => 'statut',
+    //         2 => 'client_id',
+    //         3 => 'payment_statut',
+    //         4 => 'warehouse_id',
+    //         5 => 'date',
+    //         6 => 'shipping_status',
+    //     );
+    //     $data = array();
+
+    //     // Check If User Has Permission View  All Records
+    //     $Sales = Sale::with('facture', 'client', 'warehouse','user')
+    //         ->where('deleted_at', '=', null)
+    //         ->where(function ($query) use ($view_records) {
+    //             if (!$view_records) {
+    //                 return $query->where('user_id', '=', Auth::user()->id);
+    //             }
+    //         });
+    //     //Multiple Filter
+    //     $Filtred = $helpers->filter($Sales, $columns, $param, $request)
+    //     // Search With Multiple Param
+    //         ->where(function ($query) use ($request) {
+    //             return $query->when($request->filled('search'), function ($query) use ($request) {
+    //                 return $query->where('Ref', 'LIKE', "%{$request->search}%")
+    //                     ->orWhere('statut', 'LIKE', "%{$request->search}%")
+    //                     ->orWhere('GrandTotal', $request->search)
+    //                     ->orWhere('payment_statut', 'like', "%{$request->search}%")
+    //                     ->orWhere('shipping_status', 'like', "%{$request->search}%")
+    //                     ->orWhere(function ($query) use ($request) {
+    //                         return $query->whereHas('client', function ($q) use ($request) {
+    //                             $q->where('name', 'LIKE', "%{$request->search}%");
+    //                         });
+    //                     })
+    //                     ->orWhere(function ($query) use ($request) {
+    //                         return $query->whereHas('warehouse', function ($q) use ($request) {
+    //                             $q->where('name', 'LIKE', "%{$request->search}%");
+    //                         });
+    //                     });
+    //             });
+    //         });
+
+    //     $totalRows = $Filtred->count();
+    //     if($perPage == "-1"){
+    //         $perPage = $totalRows;
+    //     }
+        
+    //     $Sales = $Filtred->offset($offSet)
+    //         ->limit($perPage)
+    //         ->orderBy($order, $dir)
+    //         ->get();
+
+    //     foreach ($Sales as $Sale) {
+            
+    //         $item['id'] = $Sale['id'];
+    //         $item['date'] = $Sale['date'];
+    //         $item['Ref'] = $Sale['Ref'];
+    //         $item['created_by'] = $Sale['user']->username;
+    //         $item['statut'] = $Sale['statut'];
+    //         $item['shipping_status'] =  $Sale['shipping_status'];
+    //         $item['discount'] = $Sale['discount'];
+    //         $item['shipping'] = $Sale['shipping'];
+    //         $item['warehouse_name'] = $Sale['warehouse']['name'];
+    //         $item['client_id'] = $Sale['client']['id'];
+    //         $item['client_name'] = $Sale['client']['name'];
+    //         $item['client_email'] = $Sale['client']['email'];
+    //         $item['client_tele'] = $Sale['client']['phone'];
+    //         $item['client_code'] = $Sale['client']['code'];
+    //         $item['client_adr'] = $Sale['client']['adresse'];
+    //         $item['GrandTotal'] = number_format($Sale['GrandTotal'], 2, '.', '');
+    //         $item['paid_amount'] = number_format($Sale['paid_amount'], 2, '.', '');
+    //         $item['due'] = number_format($item['GrandTotal'] - $item['paid_amount'], 2, '.', '');
+    //         $item['payment_status'] = $Sale['payment_statut'];
+
+    //         if (SaleReturn::where('sale_id', $Sale['id'])->where('deleted_at', '=', null)->exists()) {
+    //             $sellReturn = SaleReturn::where('sale_id', $Sale['id'])->where('deleted_at', '=', null)->first();
+    //             $item['salereturn_id'] = $sellReturn->id;
+    //             $item['sale_has_return'] = 'yes';
+    //         }else{
+    //             $item['sale_has_return'] = 'no';
+    //         }
+            
+    //         $data[] = $item;
+    //     }
+        
+    //     $stripe_key = config('app.STRIPE_KEY');
+    //     $customers = client::where('deleted_at', '=', null)->get(['id', 'name']);
+
+    //    //get warehouses assigned to user
+    //    $user_auth = auth()->user();
+    //    if($user_auth->is_all_warehouses){
+    //        $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+    //    }else{
+    //        $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+    //        $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+    //    }
+
+    //     return response()->json([
+    //         'stripe_key' => $stripe_key,
+    //         'totalRows' => $totalRows,
+    //         'sales' => $data,
+    //         'customers' => $customers,
+    //         'warehouses' => $warehouses,
+    //     ]);
+    // }
 
     public function index(request $request)
     {
@@ -73,76 +204,61 @@ class SalesController extends BaseController
         $data = array();
 
         // Check If User Has Permission View  All Records
-        $Sales = Sale::with('facture', 'client', 'warehouse','user')
-            ->where('deleted_at', '=', null)
-            ->where(function ($query) use ($view_records) {
-                if (!$view_records) {
-                    return $query->where('user_id', '=', Auth::user()->id);
-                }
-            });
-        //Multiple Filter
-        $Filtred = $helpers->filter($Sales, $columns, $param, $request)
-        // Search With Multiple Param
-            ->where(function ($query) use ($request) {
-                return $query->when($request->filled('search'), function ($query) use ($request) {
-                    return $query->where('Ref', 'LIKE', "%{$request->search}%")
-                        ->orWhere('statut', 'LIKE', "%{$request->search}%")
-                        ->orWhere('GrandTotal', $request->search)
-                        ->orWhere('payment_statut', 'like', "%{$request->search}%")
-                        ->orWhere('shipping_status', 'like', "%{$request->search}%")
-                        ->orWhere(function ($query) use ($request) {
-                            return $query->whereHas('client', function ($q) use ($request) {
-                                $q->where('name', 'LIKE', "%{$request->search}%");
-                            });
-                        })
-                        ->orWhere(function ($query) use ($request) {
-                            return $query->whereHas('warehouse', function ($q) use ($request) {
-                                $q->where('name', 'LIKE', "%{$request->search}%");
-                            });
-                        });
-                });
-            });
+        $Sales = $this->sale_list_woo();
 
-        $totalRows = $Filtred->count();
+        //Multiple Filter
+        // $Filtred = $helpers->filter($Sales, $columns, $param, $request)
+        // Search With Multiple Param
+            // ->where(function ($query) use ($request) {
+            //     return $query->when($request->filled('search'), function ($query) use ($request) {
+            //         return $query->where('Ref', 'LIKE', "%{$request->search}%")
+            //             ->orWhere('statut', 'LIKE', "%{$request->search}%")
+            //             ->orWhere('GrandTotal', $request->search)
+            //             ->orWhere('payment_statut', 'like', "%{$request->search}%")
+            //             ->orWhere('shipping_status', 'like', "%{$request->search}%")
+            //             ->orWhere(function ($query) use ($request) {
+            //                 return $query->whereHas('client', function ($q) use ($request) {
+            //                     $q->where('name', 'LIKE', "%{$request->search}%");
+            //                 });
+            //             })
+            //             ->orWhere(function ($query) use ($request) {
+            //                 return $query->whereHas('warehouse', function ($q) use ($request) {
+            //                     $q->where('name', 'LIKE', "%{$request->search}%");
+            //                 });
+            //             });
+            //     });
+            // });
+
+        $Filtred = $Sales;
+        $totalRows = count($Filtred);
         if($perPage == "-1"){
             $perPage = $totalRows;
         }
+        $Sales = array_slice($Filtred,$offSet,$perPage);
         
-        $Sales = $Filtred->offset($offSet)
-            ->limit($perPage)
-            ->orderBy($order, $dir)
-            ->get();
-
         foreach ($Sales as $Sale) {
             
-            $item['id'] = $Sale['id'];
-            $item['date'] = $Sale['date'];
-            $item['Ref'] = $Sale['Ref'];
-            $item['created_by'] = $Sale['user']->username;
-            $item['statut'] = $Sale['statut'];
-            $item['shipping_status'] =  $Sale['shipping_status'];
-            $item['discount'] = $Sale['discount'];
-            $item['shipping'] = $Sale['shipping'];
-            $item['warehouse_name'] = $Sale['warehouse']['name'];
-            $item['client_id'] = $Sale['client']['id'];
-            $item['client_name'] = $Sale['client']['name'];
-            $item['client_email'] = $Sale['client']['email'];
-            $item['client_tele'] = $Sale['client']['phone'];
-            $item['client_code'] = $Sale['client']['code'];
-            $item['client_adr'] = $Sale['client']['adresse'];
-            $item['GrandTotal'] = number_format($Sale['GrandTotal'], 2, '.', '');
-            $item['paid_amount'] = number_format($Sale['paid_amount'], 2, '.', '');
-            $item['due'] = number_format($item['GrandTotal'] - $item['paid_amount'], 2, '.', '');
-            $item['payment_status'] = $Sale['payment_statut'];
+            $item['id'] = $Sale->id;
+            $item['date'] = $Sale->date_paid;
+            $item['Ref'] = 'Ref';
+            $item['created_by'] = $Sale->customer_id;
+            $item['statut'] = $Sale->status;
+            $item['shipping_status'] =  $Sale->shipping->state;
+            $item['discount'] = $Sale->discount_total;
+            $item['shipping'] = 'shipping';
+            $item['warehouse_name'] = 'warehouse';
+            $item['client_id'] = 'clientid';
+            $item['client_name'] = 'clientname';
+            $item['client_email'] = 'clientemail';
+            $item['client_tele'] = 'clientphone';
+            $item['client_code'] = 'clientcode';
+            $item['client_adr'] = 'clientadresse';
+            $item['GrandTotal'] = number_format($Sale->total, 2, '.', '');
+            $item['paid_amount'] = number_format($Sale->total, 2, '.', '');
+            $item['due'] = number_format($Sale->total - $Sale->total, 2, '.', '');
+            $item['payment_status'] = $Sale->status;
+            $item['sale_has_return'] = 'no';
 
-            if (SaleReturn::where('sale_id', $Sale['id'])->where('deleted_at', '=', null)->exists()) {
-                $sellReturn = SaleReturn::where('sale_id', $Sale['id'])->where('deleted_at', '=', null)->first();
-                $item['salereturn_id'] = $sellReturn->id;
-                $item['sale_has_return'] = 'yes';
-            }else{
-                $item['sale_has_return'] = 'no';
-            }
-            
             $data[] = $item;
         }
         
@@ -165,6 +281,20 @@ class SalesController extends BaseController
             'customers' => $customers,
             'warehouses' => $warehouses,
         ]);
+    }
+    public function sale_list_woo(){
+        $page = 1;
+        $sales = [];
+        $all_sales = [];
+        do{
+            try {
+                $sales = WooCommerce::all('orders?per_page=100&page='.$page);
+            }catch(HttpClientException $e){
+            }
+        $all_sales = array_merge($all_sales,$sales);
+        $page++;
+        } while (count($sales) > 0);
+        return $all_sales;
     }
 
     //------------- STORE NEW SALE-----------\\
