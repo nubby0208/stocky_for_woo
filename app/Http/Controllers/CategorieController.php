@@ -98,6 +98,22 @@ class CategorieController extends BaseController
     }
     //-------------- Store New Category ---------------\\
 
+    // public function store(Request $request)
+    // {
+    //     $this->authorizeForUser($request->user('api'), 'create', Category::class);
+
+    //     request()->validate([
+    //         'name' => 'required',
+    //         'code' => 'required',
+    //     ]);
+
+    //     Category::create([
+    //         'code' => $request['code'],
+    //         'name' => $request['name'],
+    //     ]);
+    //     return response()->json(['success' => true]);
+    // }
+
     public function store(Request $request)
     {
         $this->authorizeForUser($request->user('api'), 'create', Category::class);
@@ -107,12 +123,18 @@ class CategorieController extends BaseController
             'code' => 'required',
         ]);
 
-        Category::create([
-            'code' => $request['code'],
+        $data = [
             'name' => $request['name'],
-        ]);
+        ];
+        $result = $this->create_category_woo($data);
+
         return response()->json(['success' => true]);
     }
+
+    public function create_category_woo($data){
+        $result = WooCommerce::create('products/categories', $data);
+        return $result;
+    } 
 
      //------------ function show -----------\\
 
