@@ -145,6 +145,23 @@ class CategorieController extends BaseController
 
     //-------------- Update Category ---------------\\
 
+    // public function update(Request $request, $id)
+    // {
+    //     $this->authorizeForUser($request->user('api'), 'update', Category::class);
+
+    //     request()->validate([
+    //         'name' => 'required',
+    //         'code' => 'required',
+    //     ]);
+
+    //     Category::whereId($id)->update([
+    //         'code' => $request['code'],
+    //         'name' => $request['name'],
+    //     ]);
+    //     return response()->json(['success' => true]);
+
+    // }
+
     public function update(Request $request, $id)
     {
         $this->authorizeForUser($request->user('api'), 'update', Category::class);
@@ -154,14 +171,19 @@ class CategorieController extends BaseController
             'code' => 'required',
         ]);
 
-        Category::whereId($id)->update([
-            'code' => $request['code'],
+        $data = [
             'name' => $request['name'],
-        ]);
+        ];
+        $result = $this->update_category_woo($id, $data);
+
         return response()->json(['success' => true]);
 
     }
 
+    public function update_category_woo($id, $data){
+        $result = WooCommerce::update('products/categories/'.$id, $data);
+        return $result;
+    }
     //-------------- Remove Category ---------------\\
 
     public function destroy(Request $request, $id)
