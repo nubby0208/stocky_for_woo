@@ -113,12 +113,6 @@ class ClientController extends BaseController
 
         $this->validate($request, [
             'name' => 'required',
-            'email' => 'required|unique:clients',
-            'email' => Rule::unique('clients')->where(function ($query) {
-                return $query->where('deleted_at', '=', null);
-            }),
-        ],[
-            'email.unique' => 'This Email already taken.',
         ]
     );
 
@@ -149,16 +143,7 @@ class ClientController extends BaseController
         $this->authorizeForUser($request->user('api'), 'update', Client::class);
         $this->validate($request, [
             
-            'email' => 'required|unique:clients',
-            'email' => Rule::unique('clients')->ignore($id)->where(function ($query) {
-                return $query->where('deleted_at', '=', null);
-            }),
-
             'name' => 'required',
-        ]
-
-        , [
-            'email.unique' => 'This Email already taken.',
         ]
     );
 
