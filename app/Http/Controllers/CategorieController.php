@@ -190,9 +190,11 @@ class CategorieController extends BaseController
     {
         $this->authorizeForUser($request->user('api'), 'delete', Category::class);
 
-        Category::whereId($id)->update([
-            'deleted_at' => Carbon::now(),
-        ]);
+        try{
+            $result = $this->delete_category_woo($id);
+        }catch(HttpClientException $e){
+            $success = false;
+        }
         return response()->json(['success' => true]);
     }
 
@@ -204,12 +206,18 @@ class CategorieController extends BaseController
         $selectedIds = $request->selectedIds;
 
         foreach ($selectedIds as $category_id) {
-            Category::whereId($category_id)->update([
-                'deleted_at' => Carbon::now(),
-            ]);
+            try{
+                $result = $this->delete_category_woo($category_id);
+            }catch(HttpClientException $e){
+                $success = false;
+            }
         }
 
         return response()->json(['success' => true]);
     }
 
+    public function delete_category_woo($id){
+        $result = WooCommerce::delete('products/categories/'.$id, ['force' => true]);
+        return $result;
+    }
 }
