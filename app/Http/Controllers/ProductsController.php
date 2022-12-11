@@ -882,77 +882,103 @@ class ProductsController extends BaseController
 
     //------------ Get products By Warehouse -----------------\\
 
+    // public function Products_by_Warehouse(request $request, $id)
+    // {
+    //     $data = [];
+    //     $product_warehouse_data = product_warehouse::with('warehouse', 'product', 'productVariant')
+
+    //     ->where(function ($query) use ($request , $id) {
+    //             return $query->where('warehouse_id', $id)
+    //                 ->where('deleted_at', '=', null)
+    //                 ->where(function ($query) use ($request) {
+    //                     return $query->whereHas('product', function ($q) use ($request) {
+    //                         if ($request->is_sale == '1') {
+    //                             $q->where('not_selling', '=', 0);
+    //                         }
+    //                     });
+    //                 })
+    //                 ->where(function ($query) use ($request) {
+    //                     if ($request->stock == '1') {
+    //                         return $query->where('qte', '>', 0);
+    //                     }
+    //                 });
+    //     })->get();
+
+    //     foreach ($product_warehouse_data as $product_warehouse) {
+
+    //         if ($product_warehouse->product_variant_id) {
+    //             $item['product_variant_id'] = $product_warehouse->product_variant_id;
+    //             $item['code'] = $product_warehouse['productVariant']->name . '-' . $product_warehouse['product']->code;
+    //             $item['Variant'] = $product_warehouse['productVariant']->name;
+    //         } else {
+    //             $item['product_variant_id'] = null;
+    //             $item['Variant'] = null;
+    //             $item['code'] = $product_warehouse['product']->code;
+    //         }
+
+    //         $item['id'] = $product_warehouse->product_id;
+    //         $item['name'] = $product_warehouse['product']->name;
+    //         $item['barcode'] = $product_warehouse['product']->code;
+    //         $item['Type_barcode'] = $product_warehouse['product']->Type_barcode;
+    //         $firstimage = explode(',', $product_warehouse['product']->image);
+    //         $item['image'] = $firstimage[0];
+
+    //         if ($product_warehouse['product']['unitSale']->operator == '/') {
+    //             $item['qte_sale'] = $product_warehouse->qte * $product_warehouse['product']['unitSale']->operator_value;
+    //             $price = $product_warehouse['product']->price / $product_warehouse['product']['unitSale']->operator_value;
+    //         } else {
+    //             $item['qte_sale'] = $product_warehouse->qte / $product_warehouse['product']['unitSale']->operator_value;
+    //             $price = $product_warehouse['product']->price * $product_warehouse['product']['unitSale']->operator_value;
+    //         }
+
+    //         if ($product_warehouse['product']['unitPurchase']->operator == '/') {
+    //             $item['qte_purchase'] = round($product_warehouse->qte * $product_warehouse['product']['unitPurchase']->operator_value, 5);
+    //         } else {
+    //             $item['qte_purchase'] = round($product_warehouse->qte / $product_warehouse['product']['unitPurchase']->operator_value, 5);
+    //         }
+
+    //         $item['qte'] = $product_warehouse->qte;
+    //         $item['unitSale'] = $product_warehouse['product']['unitSale']->ShortName;
+    //         $item['unitPurchase'] = $product_warehouse['product']['unitPurchase']->ShortName;
+
+    //         if ($product_warehouse['product']->TaxNet !== 0.0) {
+    //             //Exclusive
+    //             if ($product_warehouse['product']->tax_method == '1') {
+    //                 $tax_price = $price * $product_warehouse['product']->TaxNet / 100;
+    //                 $item['Net_price'] = $price + $tax_price;
+    //                 // Inxclusive
+    //             } else {
+    //                 $item['Net_price'] = $price;
+    //             }
+    //         } else {
+    //             $item['Net_price'] = $price;
+    //         }
+
+    //         $data[] = $item;
+    //     }
+
+    //     return response()->json($data);
+    // }
+
     public function Products_by_Warehouse(request $request, $id)
     {
         $data = [];
-        $product_warehouse_data = product_warehouse::with('warehouse', 'product', 'productVariant')
+        $products = $this->product_list_woo();
 
-        ->where(function ($query) use ($request , $id) {
-                return $query->where('warehouse_id', $id)
-                    ->where('deleted_at', '=', null)
-                    ->where(function ($query) use ($request) {
-                        return $query->whereHas('product', function ($q) use ($request) {
-                            if ($request->is_sale == '1') {
-                                $q->where('not_selling', '=', 0);
-                            }
-                        });
-                    })
-                    ->where(function ($query) use ($request) {
-                        if ($request->stock == '1') {
-                            return $query->where('qte', '>', 0);
-                        }
-                    });
-        })->get();
+        foreach ($products as $product) {
 
-        foreach ($product_warehouse_data as $product_warehouse) {
-
-            if ($product_warehouse->product_variant_id) {
-                $item['product_variant_id'] = $product_warehouse->product_variant_id;
-                $item['code'] = $product_warehouse['productVariant']->name . '-' . $product_warehouse['product']->code;
-                $item['Variant'] = $product_warehouse['productVariant']->name;
-            } else {
-                $item['product_variant_id'] = null;
-                $item['Variant'] = null;
-                $item['code'] = $product_warehouse['product']->code;
-            }
-
-            $item['id'] = $product_warehouse->product_id;
-            $item['name'] = $product_warehouse['product']->name;
-            $item['barcode'] = $product_warehouse['product']->code;
-            $item['Type_barcode'] = $product_warehouse['product']->Type_barcode;
-            $firstimage = explode(',', $product_warehouse['product']->image);
-            $item['image'] = $firstimage[0];
-
-            if ($product_warehouse['product']['unitSale']->operator == '/') {
-                $item['qte_sale'] = $product_warehouse->qte * $product_warehouse['product']['unitSale']->operator_value;
-                $price = $product_warehouse['product']->price / $product_warehouse['product']['unitSale']->operator_value;
-            } else {
-                $item['qte_sale'] = $product_warehouse->qte / $product_warehouse['product']['unitSale']->operator_value;
-                $price = $product_warehouse['product']->price * $product_warehouse['product']['unitSale']->operator_value;
-            }
-
-            if ($product_warehouse['product']['unitPurchase']->operator == '/') {
-                $item['qte_purchase'] = round($product_warehouse->qte * $product_warehouse['product']['unitPurchase']->operator_value, 5);
-            } else {
-                $item['qte_purchase'] = round($product_warehouse->qte / $product_warehouse['product']['unitPurchase']->operator_value, 5);
-            }
-
-            $item['qte'] = $product_warehouse->qte;
-            $item['unitSale'] = $product_warehouse['product']['unitSale']->ShortName;
-            $item['unitPurchase'] = $product_warehouse['product']['unitPurchase']->ShortName;
-
-            if ($product_warehouse['product']->TaxNet !== 0.0) {
-                //Exclusive
-                if ($product_warehouse['product']->tax_method == '1') {
-                    $tax_price = $price * $product_warehouse['product']->TaxNet / 100;
-                    $item['Net_price'] = $price + $tax_price;
-                    // Inxclusive
-                } else {
-                    $item['Net_price'] = $price;
-                }
-            } else {
-                $item['Net_price'] = $price;
-            }
+            $item['product_variant_id'] = null;
+            $item['Variant'] = null;
+            $item['code'] = $product->sku;
+            $item['id'] = $product->id;
+            $item['barcode'] = $product->sku;
+            $item['name'] = $product->name;
+            // $firstimage = explode(',', $product->image);
+            $item['image'] = 'img';
+            $item['qte_sale'] = $product->price;
+            $item['unitSale'] = 'unitSale';
+            $item['qte'] = 'qte';
+            $item['Net_price'] = $product->price;
 
             $data[] = $item;
         }
@@ -962,79 +988,122 @@ class ProductsController extends BaseController
 
     //------------ Get product By ID -----------------\\
 
+    // public function show($id)
+    // {
+
+    //     $Product_data = Product::with('unit')
+    //         ->where('id', $id)
+    //         ->where('deleted_at', '=', null)
+    //         ->first();
+
+    //     $data = [];
+    //     $item['id'] = $Product_data['id'];
+    //     $item['name'] = $Product_data['name'];
+    //     $item['Type_barcode'] = $Product_data['Type_barcode'];
+    //     $item['unit_id'] = $Product_data['unit']->id;
+    //     $item['unit'] = $Product_data['unit']->ShortName;
+    //     $item['purchase_unit_id'] = $Product_data['unitPurchase']->id;
+    //     $item['unitPurchase'] = $Product_data['unitPurchase']->ShortName;
+    //     $item['sale_unit_id'] = $Product_data['unitSale']->id;
+    //     $item['unitSale'] = $Product_data['unitSale']->ShortName;
+    //     $item['tax_method'] = $Product_data['tax_method'];
+    //     $item['tax_percent'] = $Product_data['TaxNet'];
+    //     $item['is_imei'] = $Product_data['is_imei'];
+    //     $item['not_selling'] = $Product_data['not_selling'];
+
+    //     if ($Product_data['unitSale']->operator == '/') {
+    //         $price = $Product_data['price'] / $Product_data['unitSale']->operator_value;
+
+    //     } else {
+    //         $price = $Product_data['price'] * $Product_data['unitSale']->operator_value;
+    //     }
+
+    //     if ($Product_data['unitPurchase']->operator == '/') {
+    //         $cost = $Product_data['cost'] / $Product_data['unitPurchase']->operator_value;
+    //     } else {
+    //         $cost = $Product_data['cost'] * $Product_data['unitPurchase']->operator_value;
+    //     }
+
+    //     $item['Unit_cost'] = $cost;
+    //     $item['fix_cost'] = $Product_data['cost'];
+    //     $item['Unit_price'] = $price;
+    //     $item['fix_price'] = $Product_data['price'];
+
+    //     if ($Product_data->TaxNet !== 0.0) {
+    //         //Exclusive
+    //         if ($Product_data['tax_method'] == '1') {
+    //             $tax_price = $price * $Product_data['TaxNet'] / 100;
+    //             $tax_cost = $cost * $Product_data['TaxNet'] / 100;
+
+    //             $item['Total_cost'] = $cost + $tax_cost;
+    //             $item['Total_price'] = $price + $tax_price;
+    //             $item['Net_cost'] = $cost;
+    //             $item['Net_price'] = $price;
+    //             $item['tax_price'] = $tax_price;
+    //             $item['tax_cost'] = $tax_cost;
+
+    //             // Inxclusive
+    //         } else {
+    //             $item['Total_cost'] = $cost;
+    //             $item['Total_price'] = $price;
+    //             $item['Net_cost'] = $cost / (($Product_data['TaxNet'] / 100) + 1);
+    //             $item['Net_price'] = $price / (($Product_data['TaxNet'] / 100) + 1);
+    //             $item['tax_cost'] = $item['Total_cost'] - $item['Net_cost'];
+    //             $item['tax_price'] = $item['Total_price'] - $item['Net_price'];
+    //         }
+    //     } else {
+    //         $item['Total_cost'] = $cost;
+    //         $item['Total_price'] = $price;
+    //         $item['Net_cost'] = $cost;
+    //         $item['Net_price'] = $price;
+    //         $item['tax_price'] = 0;
+    //         $item['tax_cost'] = 0;
+    //     }
+
+    //     $data[] = $item;
+
+    //     return response()->json($data[0]);
+    // }
+
     public function show($id)
     {
-
-        $Product_data = Product::with('unit')
-            ->where('id', $id)
-            ->where('deleted_at', '=', null)
-            ->first();
-
         $data = [];
-        $item['id'] = $Product_data['id'];
-        $item['name'] = $Product_data['name'];
-        $item['Type_barcode'] = $Product_data['Type_barcode'];
-        $item['unit_id'] = $Product_data['unit']->id;
-        $item['unit'] = $Product_data['unit']->ShortName;
-        $item['purchase_unit_id'] = $Product_data['unitPurchase']->id;
-        $item['unitPurchase'] = $Product_data['unitPurchase']->ShortName;
-        $item['sale_unit_id'] = $Product_data['unitSale']->id;
-        $item['unitSale'] = $Product_data['unitSale']->ShortName;
-        $item['tax_method'] = $Product_data['tax_method'];
-        $item['tax_percent'] = $Product_data['TaxNet'];
-        $item['is_imei'] = $Product_data['is_imei'];
-        $item['not_selling'] = $Product_data['not_selling'];
+        $products = $this->product_list_woo();
+        foreach ($products as $product) {
 
-        if ($Product_data['unitSale']->operator == '/') {
-            $price = $Product_data['price'] / $Product_data['unitSale']->operator_value;
+            if($product->id == $id){
+                $item['id'] = $product->id;
+                $item['name'] = $product->name;
+                $item['Type_barcode'] = $product->sku;
+                $item['unit_id'] = 10;
+                $item['unit'] = 'unit';
+                $item['purchase_unit_id'] = $product->id;
+                $item['unitPurchase'] = 'unitPurchase';
+                $item['sale_unit_id'] = $product->id;
+                $item['unitSale'] = 'unitSale';
+                $item['tax_method'] = 'tax_method';
+                $item['tax_percent'] = 10;
+                $item['is_imei'] = false;
+                $item['not_selling'] = false;
 
-        } else {
-            $price = $Product_data['price'] * $Product_data['unitSale']->operator_value;
-        }
+                $price = $product->price;
+                $cost = $product->price;
 
-        if ($Product_data['unitPurchase']->operator == '/') {
-            $cost = $Product_data['cost'] / $Product_data['unitPurchase']->operator_value;
-        } else {
-            $cost = $Product_data['cost'] * $Product_data['unitPurchase']->operator_value;
-        }
+                $item['Unit_cost'] = $cost;
+                $item['fix_cost'] = $cost;
+                $item['Unit_price'] = $price;
+                $item['fix_price'] = $price;
 
-        $item['Unit_cost'] = $cost;
-        $item['fix_cost'] = $Product_data['cost'];
-        $item['Unit_price'] = $price;
-        $item['fix_price'] = $Product_data['price'];
-
-        if ($Product_data->TaxNet !== 0.0) {
-            //Exclusive
-            if ($Product_data['tax_method'] == '1') {
-                $tax_price = $price * $Product_data['TaxNet'] / 100;
-                $tax_cost = $cost * $Product_data['TaxNet'] / 100;
-
-                $item['Total_cost'] = $cost + $tax_cost;
-                $item['Total_price'] = $price + $tax_price;
-                $item['Net_cost'] = $cost;
-                $item['Net_price'] = $price;
-                $item['tax_price'] = $tax_price;
-                $item['tax_cost'] = $tax_cost;
-
-                // Inxclusive
-            } else {
                 $item['Total_cost'] = $cost;
                 $item['Total_price'] = $price;
-                $item['Net_cost'] = $cost / (($Product_data['TaxNet'] / 100) + 1);
-                $item['Net_price'] = $price / (($Product_data['TaxNet'] / 100) + 1);
-                $item['tax_cost'] = $item['Total_cost'] - $item['Net_cost'];
-                $item['tax_price'] = $item['Total_price'] - $item['Net_price'];
-            }
-        } else {
-            $item['Total_cost'] = $cost;
-            $item['Total_price'] = $price;
-            $item['Net_cost'] = $cost;
-            $item['Net_price'] = $price;
-            $item['tax_price'] = 0;
-            $item['tax_cost'] = 0;
-        }
+                $item['Net_cost'] = $cost;
+                $item['Net_price'] = $price;
+                $item['tax_price'] = 0;
+                $item['tax_cost'] = 0;
 
-        $data[] = $item;
+                $data[] = $item;
+            }
+        }
 
         return response()->json($data[0]);
     }
