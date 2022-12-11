@@ -137,76 +137,22 @@ class PosController extends BaseController
                 }
                               
                 if($request['amount'] > 0){
-                    if ($request->payment['Reglement'] == 'credit card') {
-                        $Client = Client::whereId($request->client_id)->first();
-                        Stripe\Stripe::setApiKey(config('app.STRIPE_SECRET'));
 
-                        $PaymentWithCreditCard = PaymentWithCreditCard::where('customer_id', $request->client_id)->first();
-                        if (!$PaymentWithCreditCard) {
-                            // Create a Customer
-                            $customer = \Stripe\Customer::create([
-                                'source' => $request->token,
-                                'email' => $Client->email,
-                            ]);
+                    PaymentSale::create([
+                        'sale_id' => $order->id,
+                        'Ref' => app('App\Http\Controllers\PaymentSalesController')->getNumberOrder(),
+                        'date' => Carbon::now(),
+                        'Reglement' => $request->payment['Reglement'] == 'credit card'?'Cash':$request->payment['Reglement'] == 'credit card',
+                        'montant' => $request['amount'],
+                        'change' => $request['change'],
+                        'notes' => $request->payment['notes'],
+                        'user_id' => Auth::user()->id,
+                    ]);
 
-                            // Charge the Customer instead of the card:
-                            $charge = \Stripe\Charge::create([
-                                'amount' => $request['amount'] * 100,
-                                'currency' => 'usd',
-                                'customer' => $customer->id,
-                            ]);
-                            $PaymentCard['customer_stripe_id'] = $customer->id;
-
-                        } else {
-                            $customer_id = $PaymentWithCreditCard->customer_stripe_id;
-                            $charge = \Stripe\Charge::create([
-                                'amount' => $request['amount'] * 100,
-                                'currency' => 'usd',
-                                'customer' => $customer_id,
-                            ]);
-                            $PaymentCard['customer_stripe_id'] = $customer_id;
-                        }
-
-                        $PaymentSale = new PaymentSale();
-                        $PaymentSale->sale_id = $order->id;
-                        $PaymentSale->Ref = app('App\Http\Controllers\PaymentSalesController')->getNumberOrder();
-                        $PaymentSale->date = Carbon::now();
-                        $PaymentSale->Reglement = $request->payment['Reglement'];
-                        $PaymentSale->montant = $request['amount'];
-                        $PaymentSale->change = $request['change'];
-                        $PaymentSale->notes = $request->payment['notes'];
-                        $PaymentSale->user_id = Auth::user()->id;
-                        $PaymentSale->save();
-
-                        $sale->update([
-                            'paid_amount' => $total_paid,
-                            'payment_statut' => $payment_statut,
-                        ]);
-
-                        $PaymentCard['customer_id'] = $request->client_id;
-                        $PaymentCard['payment_id'] = $PaymentSale->id;
-                        $PaymentCard['charge_id'] = $charge->id;
-                        PaymentWithCreditCard::create($PaymentCard);
-
-                        // Paying Method Cash
-                    } else {
-
-                        PaymentSale::create([
-                            'sale_id' => $order->id,
-                            'Ref' => app('App\Http\Controllers\PaymentSalesController')->getNumberOrder(),
-                            'date' => Carbon::now(),
-                            'Reglement' => $request->payment['Reglement'],
-                            'montant' => $request['amount'],
-                            'change' => $request['change'],
-                            'notes' => $request->payment['notes'],
-                            'user_id' => Auth::user()->id,
-                        ]);
-
-                        $sale->update([
-                            'paid_amount' => $total_paid,
-                            'payment_statut' => $payment_statut,
-                        ]);
-                    }
+                    $sale->update([
+                        'paid_amount' => $total_paid,
+                        'payment_statut' => $payment_statut,
+                    ]);
 
                 }
               

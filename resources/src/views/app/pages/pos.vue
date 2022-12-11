@@ -1866,18 +1866,6 @@ export default {
     CreatePOS() {
       NProgress.start();
       NProgress.set(0.1);
-      if (this.payment.Reglement == "credit card") {
-        if (this.stripe_key != "") {
-          this.processPayment();
-        } else {
-          this.makeToast(
-            "danger",
-            this.$t("credit_card_account_not_available"),
-            this.$t("Failed")
-          );
-          NProgress.done();
-        }
-      } else {
         this.paymentProcessing = true;
         axios
           .post("pos/create_pos", {
@@ -1911,7 +1899,6 @@ export default {
             this.paymentProcessing = false;
             this.makeToast("danger", this.$t("InvalidData"), this.$t("Failed"));
           });
-      }
     },
     //------------------------------Formetted Numbers -------------------------\\
     formatNumber(number, dec) {
