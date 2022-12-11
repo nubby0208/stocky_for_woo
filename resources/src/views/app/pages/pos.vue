@@ -951,8 +951,69 @@
                       >{{parseFloat(payment.received_amount - payment.amount).toFixed(2)}}</p>
                     </b-col>
 
-                    <!-- Payment choice -->
+                    <!-- Split Payment -->
                     <b-col lg="12" md="12" sm="12">
+                      <ValidationProvider rules >
+                        <div class="form-check">
+                          <label class="checkbox">
+                            <input type="checkbox" v-model="payment.is_split">
+                            <label>{{$t('SplitPayment')}} :</label>
+                            <span class="checkmark"></span>
+                          </label>
+                        </div>
+                      </ValidationProvider>
+                    </b-col>
+
+                    <!-- Credit  Amount  -->
+                    <b-col lg="12" md="12" sm="12" v-if="payment.is_split">
+                      <validation-provider
+                        name="Credit Amount"
+                        :rules="{ required: true , regex: /^\d*\.?\d*$/}"
+                        v-slot="validationContext"
+                      >
+                        <b-form-group :label="$t('Credit_Amount') + ' ' + '*'">
+                          <b-form-input
+                            default="0"
+                            label="Credit_Amount"
+                            @keyup="Verified_creditAmount(payment.creditamount)"
+                            :placeholder="$t('Credit_Amount')"
+                            v-model.number="payment.creditamount"
+                            :state="getValidationState(validationContext)"
+                            aria-describedby="Credit_Amount-feedback"
+                          ></b-form-input>
+                          <b-form-invalid-feedback
+                            id="Credit_Amount-feedback"
+                          >{{ validationContext.errors[0] }}</b-form-invalid-feedback>
+                        </b-form-group>
+                      </validation-provider>
+                    </b-col>
+
+                    <!-- Cash  Amount  -->
+                    <b-col lg="12" md="12" sm="12" v-if="payment.is_split">
+                      <validation-provider
+                        name="Cash Amount"
+                        :rules="{ required: true , regex: /^\d*\.?\d*$/}"
+                        v-slot="validationContext"
+                      >
+                        <b-form-group :label="$t('Cash_Amount') + ' ' + '*'">
+                          <b-form-input
+                            default="0"
+                            label="Cash_Amount"
+                            @keyup="Verified_cashAmount(payment.cashamount)"
+                            :placeholder="$t('Cash_Amount')"
+                            v-model.number="payment.cashamount"
+                            :state="getValidationState(validationContext)"
+                            aria-describedby="Cash_Amount-feedback"
+                          ></b-form-input>
+                          <b-form-invalid-feedback
+                            id="Cash_Amount-feedback"
+                          >{{ validationContext.errors[0] }}</b-form-invalid-feedback>
+                        </b-form-group>
+                      </validation-provider>
+                    </b-col>
+
+                    <!-- Payment choice -->
+                    <b-col lg="12" md="12" sm="12" v-if="!payment.is_split">
                       <validation-provider name="Payment choice" :rules="{ required: true}">
                         <b-form-group slot-scope="{ valid, errors }" :label="$t('Paymentchoice') + ' ' + '*'">
                           <v-select
@@ -1231,8 +1292,11 @@ export default {
       payment: {
         amount: "",
         received_amount: "",
+        is_split: false,
         Reglement: "",
-        notes: ""
+        notes: "",
+        cashamount: "",
+        creditamount: ""
       },
       focused: false,
       timer:null,
@@ -2079,6 +2143,37 @@ export default {
         }
       }
     },
+    //---------- keyup Credit Amount
+    Verified_creditAmount() {
+      if (isNaN(this.payment.creditamount) || this.payment.creditamount == '') {
+        console.log(1);
+        this.payment.creditamount = 0;
+        this.payment.cashamount = 120;
+      } else if(this.payment.creditamount > 120){
+        console.log(2);
+        this.payment.creditamount = 0;
+        this.payment.cashamount = 120;
+      } else {
+        console.log(this.payment.cashamount);
+        this.payment.cashamount = 120 - 0;
+        this.payment.cashamount = 120 - this.payment.creditamount;
+      }
+    },
+    //---------- keyup Cash Amount
+    Verified_cashAmount() {
+      if (isNaN(this.payment.cashamount) || this.payment.cashamount == '') {
+        console.log(11);
+        this.payment.cashamount = 0;
+        this.payment.creditamount = 120;
+      } else if(this.payment.cashamount > 120){
+        console.log(22);
+        this.payment.cashamount = 0;
+        this.payment.creditamount = 120;
+      } else {
+        console.log(33);
+        this.payment.creditamount = 120 - this.payment.cashamount;
+      }
+    },
     //---------- keyup Received Amount
     Verified_Received_Amount() {
       if (isNaN(this.payment.received_amount)) {
@@ -2101,6 +2196,7 @@ export default {
       this.payment = {
         amount: "",
         received_amount: "",
+        is_split: false,
         Reglement: "",
         notes: "",
       };
