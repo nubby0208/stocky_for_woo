@@ -179,9 +179,8 @@ class ProductsController extends BaseController
             $item['quantity'] = 0;
             if($product->stock_quantity)
                 $item['quantity'] = $product->stock_quantity;
-            
 
-            $item['image'] = 'ima';
+            $item['image'] = $product->images[0]->src;
 
             $data[] = $item;
         }
