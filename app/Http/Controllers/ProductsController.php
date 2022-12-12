@@ -1364,8 +1364,18 @@ class ProductsController extends BaseController
         $item['TaxNet'] = 10;
         $item['note'] = '';
         $item['images'] = [];
-        $item['is_variant'] = false;
-        $item['ProductVariant'] = [];
+
+
+        $productsVariants = $Product->attributes;
+        foreach ($productsVariants as $variant) {
+            if(str_contains($variant->name, 'Select coffee capsule tray size')){
+                $item['is_variant'] = true;
+                foreach ($variant->options as $option) {
+                    $item['ProductVariant'][] = $option;
+                }
+            }
+        }
+
 
         $item['is_imei'] = false;
         $item['not_selling'] = false;
