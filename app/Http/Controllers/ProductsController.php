@@ -175,7 +175,11 @@ class ProductsController extends BaseController
             $item['brand'] = 'bra';
             $item['unit'] = 'uni';
             $item['price'] = $product->price;
-            $item['quantity'] = 13;
+            
+            $item['quantity'] = 0;
+            if($product->stock_quantity)
+                $item['quantity'] = $product->stock_quantity;
+            
 
             $item['image'] = 'ima';
 
