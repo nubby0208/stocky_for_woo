@@ -180,7 +180,9 @@ class ProductsController extends BaseController
             if($product->stock_quantity)
                 $item['quantity'] = $product->stock_quantity;
 
-            $item['image'] = $product->images[0]->src;
+            $item['image'] = 'image';
+            if($product->images)
+                $item['image'] = $product->images[0]->src;
 
             $data[] = $item;
         }
@@ -357,22 +359,22 @@ class ProductsController extends BaseController
             //     'code.unique' => 'This code already used. Generate Now',
             //     'code.required' => 'This field is required',
             // ]);
-
-            $Product_variants_data = array();
-            if ($request['is_variant'] == 'true') {
-                foreach ($request['variants'] as $variant) {
-                    $Product_variants_data[] = $variant;
-                }
-            }
             $attributes = array();
-            $item['name'] = "Select coffee capsule tray size (for interior of drawer)";
-            $item['id'] = 6;
-            $item['position'] = 0;
-            $item['visible'] = true;
-            $item['variation'] = true;
-            $item['options'] = $Product_variants_data;
 
-            $attributes[] = $item;
+            // $Product_variants_data = array();
+            // if ($request['is_variant'] == 'true') {
+            //     foreach ($request['variants'] as $variant) {
+            //         $Product_variants_data[] = $variant['text'];
+            //     }
+            // }
+            // $item['name'] = "Select coffee capsule tray size (for interior of drawer)";
+            // $item['id'] = 6;
+            // $item['position'] = 0;
+            // $item['visible'] = true;
+            // $item['variation'] = true;
+            // $item['options'] = $Product_variants_data;
+            // $attributes[] = $item;
+
             $data = [
                 'name' => $request['name'],
                 'type' => 'simple',
