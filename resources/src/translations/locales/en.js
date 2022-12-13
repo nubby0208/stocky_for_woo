@@ -458,6 +458,7 @@ export default {
     Credit_Amount: 'credit pay amount',
     Cash_Amount: 'cash pay amount',
     SplitPayment: 'Pay split',
+    Enter_Product_Quantity: 'Enter Product Quantity',
     ProductHasPromotion: 'Product Has Promotion',
     PromotionStart: 'Promotion Start',
     PromotionEnd: 'Promotion End',

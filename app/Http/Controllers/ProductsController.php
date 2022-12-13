@@ -1359,11 +1359,13 @@ class ProductsController extends BaseController
         $item['tax_method'] = 'tax_method';
         $item['price'] = $Product->price;
         $item['cost'] = 10;
-        $item['stock_alert'] = 'stock_alert';
+        $item['stock_alert'] = '';
         $item['TaxNet'] = 10;
         $item['note'] = '';
         $item['images'] = [];
-
+        $item['quantity'] = 0;
+        if($Product->stock_quantity)
+            $item['quantity'] = $Product->stock_quantity;
 
         $productsVariants = $Product->attributes;
         foreach ($productsVariants as $variant) {
