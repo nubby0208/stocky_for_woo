@@ -358,6 +358,21 @@ class ProductsController extends BaseController
             //     'code.required' => 'This field is required',
             // ]);
 
+            $Product_variants_data = array();
+            if ($request['is_variant'] == 'true') {
+                foreach ($request['variants'] as $variant) {
+                    $Product_variants_data[] = $variant;
+                }
+            }
+            $attributes = array();
+            $item['name'] = "Select coffee capsule tray size (for interior of drawer)";
+            $item['id'] = 6;
+            $item['position'] = 0;
+            $item['visible'] = true;
+            $item['variation'] = true;
+            $item['options'] = $Product_variants_data;
+
+            $attributes[] = $item;
             $data = [
                 'name' => $request['name'],
                 'type' => 'simple',
@@ -365,25 +380,22 @@ class ProductsController extends BaseController
                 'description' => 'full description',
                 'short_description' => 'short description',
                 'sku' => $request['code'],
+                'manage_stock' => true,
                 'stock_quantity' => $request['quantity'],
-                'attributes' => [
-                    [
-                        'id' => $request['brand_id']
-                    ],
-                ],
-                'categories' => [
-                    [
-                        'id' => $request['category_id']
-                    ],
-                ],
-                'images' => [
-                    [
-                        'src' => 'http://demo.woothemes.com/woocommerce/wp-content/uploads/sites/56/2013/06/T_2_front.jpg'
-                    ],
-                    [
-                        'src' => 'http://demo.woothemes.com/woocommerce/wp-content/uploads/sites/56/2013/06/T_2_back.jpg'
-                    ]
-                ]
+                'attributes' => $attributes,
+                // 'categories' => [
+                //     [
+                //         'id' => $request['category_id']
+                //     ],
+                // ],
+                // 'images' => [
+                //     [
+                //         'src' => 'http://demo.woothemes.com/woocommerce/wp-content/uploads/sites/56/2013/06/T_2_front.jpg'
+                //     ],
+                //     [
+                //         'src' => 'http://demo.woothemes.com/woocommerce/wp-content/uploads/sites/56/2013/06/T_2_back.jpg'
+                //     ]
+                // ]
             ];
 
             $product = $this->create_product_woo($data);
@@ -670,6 +682,20 @@ class ProductsController extends BaseController
             //     'code.unique' => 'This code already used. Generate Now',
             //     'code.required' => 'This field is required',
             // ]);
+            $Product = $this->show_woo($id);
+
+            $productsVariants = $Product->attributes;
+            foreach ($productsVariants as $pvariant) {
+                if(str_contains($pvariant->name, 'Select coffee capsule tray size')){
+                    $pvariant->options = array();
+                    if ($request['is_variant'] == 'true') {
+                        foreach ($request['variants'] as $variant) {
+                            $pvariant->options[] = $variant['text'];
+                        }
+                    }
+                    // $pvariant->options = json_encode($pvariant->options);
+                }
+            }
 
             $data = [
                 'name' => $request['name'],
@@ -678,25 +704,22 @@ class ProductsController extends BaseController
                 'description' => 'full description',
                 'short_description' => 'short description',
                 'sku' => $request['code'],
+                'manage_stock' => true,
                 'stock_quantity' => $request['quantity'],
-                'attributes' => [
-                    [
-                        'id' => $request['brand_id']
-                    ],
-                ],
-                'categories' => [
-                    [
-                        'id' => $request['category_id']
-                    ],
-                ],
-                'images' => [
-                    [
-                        'src' => 'http://demo.woothemes.com/woocommerce/wp-content/uploads/sites/56/2013/06/T_2_front.jpg'
-                    ],
-                    [
-                        'src' => 'http://demo.woothemes.com/woocommerce/wp-content/uploads/sites/56/2013/06/T_2_back.jpg'
-                    ]
-                ]
+                'attributes' => $productsVariants,
+                // 'categories' => [
+                //     [
+                //         'id' => $request['category_id']
+                //     ],
+                // ],
+                // 'images' => [
+                //     [
+                //         'src' => 'http://demo.woothemes.com/woocommerce/wp-content/uploads/sites/56/2013/06/T_2_front.jpg'
+                //     ],
+                //     [
+                //         'src' => 'http://demo.woothemes.com/woocommerce/wp-content/uploads/sites/56/2013/06/T_2_back.jpg'
+                //     ]
+                // ]
             ];
 
             $product = $this->update_product_woo($id, $data);
