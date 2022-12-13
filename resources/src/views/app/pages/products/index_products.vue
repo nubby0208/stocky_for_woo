@@ -106,7 +106,7 @@
               width="50"
               fluid
               :src="props.row.image"
-              alt="image"
+              alt="image1"
             ></b-img>
           </span>
         </template>
