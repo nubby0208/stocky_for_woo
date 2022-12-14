@@ -259,7 +259,7 @@
                 </b-col>
 
                 <!-- Tax Method -->
-                <b-col lg="6" md="6" sm="12" class="mb-2">
+                <b-col md="6" class="mb-2">
                   <validation-provider name="Tax Method" :rules="{ required: true}">
                     <b-form-group slot-scope="{ valid, errors }" :label="$t('TaxMethod') + ' ' + '*'">
                       <v-select
@@ -278,6 +278,29 @@
                     </b-form-group>
                   </validation-provider>
                 </b-col>
+
+                <!-- Product Price -->
+                <b-col md="6" class="mb-2">
+                    <validation-provider
+                      name="Product Quantity"
+                      :rules="{ required: true , regex: /^\d*\.?\d*$/}"
+                      v-slot="validationContext"
+                    >
+                      <b-form-group :label="$t('Product Quantity') + ' ' + '*'">
+                        <b-form-input
+                          :state="getValidationState(validationContext)"
+                          aria-describedby="ProductQuantity-feedback"
+                          label="Quantity"
+                          :placeholder="$t('Enter_Product_Quantity')"
+                          v-model="product.quantity"
+                        ></b-form-input>
+
+                        <b-form-invalid-feedback
+                          id="ProductQuantity-feedback"
+                        >{{ validationContext.errors[0] }}</b-form-invalid-feedback>
+                      </b-form-group>
+                    </validation-provider>
+                  </b-col>
 
                 <b-col md="12" class="mb-2">
                   <b-form-group :label="$t('Description')">
@@ -426,6 +449,7 @@ export default {
         category_id: "",
         TaxNet: "0",
         tax_method: "1",
+        quantity: "",
         unit_id: "",
         unit_sale_id: "",
         unit_purchase_id: "",

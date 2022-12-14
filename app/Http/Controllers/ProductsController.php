@@ -686,7 +686,9 @@ class ProductsController extends BaseController
             // ]);
             $Product = $this->show_woo($id);
 
-            $productsVariants = $Product->attributes;
+            $productsVariants = [];
+            if($Product->attributes)
+                $productsVariants = $Product->attributes;
             foreach ($productsVariants as $pvariant) {
                 if(str_contains($pvariant->name, 'Select coffee capsule tray size')){
                     $pvariant->options = array();
@@ -1392,7 +1394,10 @@ class ProductsController extends BaseController
         if($Product->stock_quantity)
             $item['quantity'] = $Product->stock_quantity;
 
-        $productsVariants = $Product->attributes;
+        $item['ProductVariant'] = [];
+        $productsVariants = [];
+        if($Product->attributes)
+            $productsVariants = $Product->attributes;
         foreach ($productsVariants as $variant) {
             if(str_contains($variant->name, 'Select coffee capsule tray size')){
                 $item['is_variant'] = true;
