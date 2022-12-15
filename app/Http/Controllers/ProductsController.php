@@ -701,6 +701,43 @@ class ProductsController extends BaseController
                 }
             }
 
+            // $images = [];
+            // if ($request['images'] !== null) {
+            //     $files = $request['images'];
+            //     foreach ($files as $file) {
+            //         $fileData = ImageResize::createFromString(base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $file['path'])));
+            //         $fileData->resize(200, 200);
+            //         $name = rand(11111111, 99999999) . $file['name'];
+            //         $path = 'https://coveinterior.com/wp-content/uploads/2022/07/';
+            //         $success = file_put_contents($path . $name, $fileData);
+
+            //         $url = 'https://wwrm.workwave.com/api/v1/callback';
+
+            //         $data = '
+            //         {
+            //         "url": "https://my.server.com/new-callback",
+            //         }
+            //         ';
+
+            //         $additional_headers = array(                                                                          
+            //         'Accept: application/json',
+            //         'X-WorkWave-Key: YOUR API KEY',
+            //         'Host: wwrm.workwave.com',
+            //         'Content-Type: application/json'
+            //         );
+
+            //         $ch = curl_init($url);                                                                      
+            //         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
+            //         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);                                                                  
+            //         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                                                      
+            //         curl_setopt($ch, CURLOPT_HTTPHEADER, $additional_headers); 
+
+            //         $server_output = curl_exec ($ch);
+
+            //         $images[] = [ 'src' => $path . $name ];
+            //     }
+            // }
+
             $data = [
                 'name' => $request['name'],
                 'type' => 'simple',
@@ -716,14 +753,7 @@ class ProductsController extends BaseController
                 //         'id' => $request['category_id']
                 //     ],
                 // ],
-                // 'images' => [
-                //     [
-                //         'src' => 'http://demo.woothemes.com/woocommerce/wp-content/uploads/sites/56/2013/06/T_2_front.jpg'
-                //     ],
-                //     [
-                //         'src' => 'http://demo.woothemes.com/woocommerce/wp-content/uploads/sites/56/2013/06/T_2_back.jpg'
-                //     ]
-                // ]
+                'images' => $images,
             ];
 
             $product = $this->update_product_woo($id, $data);
@@ -1394,19 +1424,27 @@ class ProductsController extends BaseController
         if($Product->stock_quantity)
             $item['quantity'] = $Product->stock_quantity;
 
-        $item['ProductVariant'] = [];
-        $productsVariants = [];
+        $item['ProductAttributes'] = [];
         if($Product->attributes)
-            $productsVariants = $Product->attributes;
-        foreach ($productsVariants as $variant) {
-            if(str_contains($variant->name, 'Select coffee capsule tray size')){
-                $item['is_variant'] = true;
-                foreach ($variant->options as $option) {
-                    $item['ProductVariant'][] = $option;
-                }
+            $item['ProductAttributes'] = $Product->attributes;
+        
+        $item['is_variant'] = true;
+        $item['ProductVariant'] = [];
+        $productsVariant = [];
+        if($Product->variations)
+            $productsVariant = $Product->variations;
+        foreach ($productsVariant as $variant) {
+            $variation = $this->show_variation_woo($id, $variant);
+            $vattributes = $variation->attributes;
+            $options = [];
+            foreach($vattributes as $vattribute) {
+                $options[] = $vattribute->option;
             }
+            $item['ProductVariant'][] = [
+                'tags' => $options,
+                'tag' => '',
+            ];
         }
-
 
         $item['is_imei'] = false;
         $item['not_selling'] = false;
@@ -1433,6 +1471,11 @@ class ProductsController extends BaseController
             'units_sub' => $product_units,
         ]);
 
+    }
+
+    public function show_variation_woo($pid, $vid){
+        $result = WooCommerce::find('products/'.$pid.'/'.'variations/'.$vid);
+        return $result;
     }
 
     public function show_woo($id){

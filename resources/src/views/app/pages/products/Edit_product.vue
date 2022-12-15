@@ -331,14 +331,16 @@
                     </div>
                   </b-col>
                   <b-col md="12 mb-5" v-show="product.is_variant">
-                    <vue-tags-input
-                      placeholder="+ add"
-                      v-model="tag"
-                      :tags="variants"
-                      class="tag-custom text-15"
-                      @adding-duplicate="showNotifDuplicate()"
-                      @tags-changed="newTags => variants = newTags"
-                    />
+                    <div v-for="variant in variants">
+                      <vue-tags-input
+                        placeholder="+ add"
+                        v-model="variant.tag"
+                        :tags="variant.tags"
+                        class="tag-custom text-15"
+                        @adding-duplicate="showNotifDuplicate()"
+                        @tags-changed="newTags => variant.tags = newTags"
+                      />
+                    </div>
                   </b-col>
 
                    <!-- Product_Has_Imei_Serial_number -->
@@ -442,6 +444,7 @@ export default {
       brands: [],
       roles: {},
       variants: [],
+      attributes: [],
       product: {
         name: "",
         code: "",
@@ -536,6 +539,7 @@ export default {
         .then(response => {
           this.product = response.data.product;
           this.variants = response.data.product.ProductVariant;
+          this.attributes = response.data.product.ProductAttributes;
           this.images = response.data.product.images;
           this.categories = response.data.categories;
           this.brands = response.data.brands;
