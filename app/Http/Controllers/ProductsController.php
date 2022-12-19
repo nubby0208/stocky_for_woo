@@ -701,7 +701,7 @@ class ProductsController extends BaseController
                 }
             }
 
-            // $images = [];
+            $images = [];
             // if ($request['images'] !== null) {
             //     $files = $request['images'];
             //     foreach ($files as $file) {
@@ -709,34 +709,87 @@ class ProductsController extends BaseController
             //         $fileData->resize(200, 200);
             //         $name = rand(11111111, 99999999) . $file['name'];
             //         $path = 'https://coveinterior.com/wp-content/uploads/2022/07/';
-            //         $success = file_put_contents($path . $name, $fileData);
+            //         // $success = file_put_contents($path . $name, $fileData);
 
-            //         $url = 'https://wwrm.workwave.com/api/v1/callback';
-
-            //         $data = '
-            //         {
-            //         "url": "https://my.server.com/new-callback",
-            //         }
-            //         ';
-
-            //         $additional_headers = array(                                                                          
-            //         'Accept: application/json',
-            //         'X-WorkWave-Key: YOUR API KEY',
-            //         'Host: wwrm.workwave.com',
-            //         'Content-Type: application/json'
-            //         );
-
-            //         $ch = curl_init($url);                                                                      
-            //         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
-            //         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);                                                                  
-            //         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                                                      
-            //         curl_setopt($ch, CURLOPT_HTTPHEADER, $additional_headers); 
-
-            //         $server_output = curl_exec ($ch);
+            //         $response = Http::attach(
+            //             'attachment', $fileData, $name
+            //         )->post($path);
 
             //         $images[] = [ 'src' => $path . $name ];
             //     }
             // }
+
+//             $username = 'admin';
+// $password = 'admin';
+// $client = new Client([
+// 'base_uri' => 'http://localhost:8888/wordpress/wp-json/wp/v2/',
+// 'headers' => [
+// 'Authorization' => 'Basic ' . base64_encode($username . ':' . $password),
+// 'Accept' => 'application/json',
+// 'Content-type' => 'application/json',
+// 'Content-Disposition' => 'attachment',
+// ]
+// ]);
+// // uploading featured image to wordpress media and getting id
+// $name = $doc->getTitle() . '.' . 'jpg';
+// $responses = $client->post(
+// 'media',
+// [
+// 'multipart' => [
+// [
+// 'name' => 'file',
+// 'contents' => file_get_contents($image_url),
+// 'filename' => $name
+// ],
+// ]
+// ]);
+// $image_id_wp = json_decode($responses->getBody(), true);
+// // uploading post to wordpress with featured image id
+// $response = $client->post('posts', [
+// 'multipart' => [
+// [
+// 'name' => 'title',
+// 'contents' => $doc->getTitle()
+// ],
+// [
+// 'name' => 'content',
+// 'contents' => implode("", $datas)
+// ],
+// [
+// 'name' => 'featured_media',
+// 'contents' => $image_id_wp['id']
+// ],
+// ]
+// ]);
+// }
+// //getting the content of the documents
+// $file = new \Google_Service_Docs($client);
+// $document = $respons['id'];
+// $doc = $file->documents->get($document);
+// $contents = $doc->getBody()->getContent();
+// $datas = [];
+// for ($i = 0; $i < count($contents); $i++) {
+// if ($contents[$i]->getParagraph() == null) {
+// continue;
+// }
+// $table = $contents[$i]->getParagraph()->getElements();
+// for ($j = 0; $j < count($table); $j++) {
+// if ($table[$j]->getTextRun() == null) {
+// goto image;
+// }
+// $cell = $table[$j]->getTextRun()->getContent();
+// array_push($datas, $cell);
+// image:
+// if ($table[$j]->getInlineObjectElement() == null) {
+// continue;
+// }
+// $image_id = $table[$j]->getInlineObjectElement()->getInlineObjectId();
+// $url = $doc->getInlineObjects();
+// $image_url2 = "<img " . "src" . "=" . $url[$image_id]->getInlineObjectProperties()->getEmbeddedObject()->getImageProperties()->contentUri . ">";
+// array_push($datas, $image_url2);
+// $image_url = $url[$image_id]->getInlineObjectProperties()->getEmbeddedObject()->getImageProperties()->contentUri;
+// }
+// }
 
             $data = [
                 'name' => $request['name'],
@@ -1417,7 +1470,7 @@ class ProductsController extends BaseController
         $item['price'] = $Product->price;
         $item['cost'] = 10;
         $item['stock_alert'] = '';
-        $item['TaxNet'] = 10;
+        $item['TaxNet'] = 0;
         $item['note'] = '';
         $item['images'] = [];
         $item['quantity'] = 0;
@@ -1435,13 +1488,47 @@ class ProductsController extends BaseController
             $productsVariant = $Product->variations;
         foreach ($productsVariant as $variant) {
             $variation = $this->show_variation_woo($id, $variant);
+            
+            $id = $variation->id;
+
             $vattributes = $variation->attributes;
             $options = [];
             foreach($vattributes as $vattribute) {
-                $options[] = $vattribute->option;
+                $options[] = [
+                    'key' => $vattribute->name,
+                    'value' => $vattribute->option
+                ];
             }
+            
+            $options[] = [
+                'key' => 'cost',
+                'value' => $variation->regular_price
+            ];
+
+            $stock_quantity = 0;
+            if($variation->stock_quantity)
+                $stock_quantity = $variation->stock_quantity;
+            $options[] = [
+                'key' => 'quantity',
+                'value' => $stock_quantity
+            ];
+
+            $sku = "";
+            if($variation->sku)
+                $sku = $variation->sku;
+            $options[] = [
+                'key' => 'code',
+                'value' => $sku
+            ];
+            
+            $text = '';
+            foreach($options as $option){
+                $text .= $option['key'] . ': ' . $option['value'] . '   ';
+            }
+
             $item['ProductVariant'][] = [
-                'tags' => $options,
+                'title' => '#' . $id,
+                'text' => $text,
                 'tag' => '',
             ];
         }

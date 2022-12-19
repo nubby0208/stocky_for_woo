@@ -332,14 +332,18 @@
                   </b-col>
                   <b-col md="12 mb-5" v-show="product.is_variant">
                     <div v-for="variant in variants">
-                      <vue-tags-input
+                      <!-- <vue-tags-input
                         placeholder="+ add"
                         v-model="variant.tag"
                         :tags="variant.tags"
                         class="tag-custom text-15"
                         @adding-duplicate="showNotifDuplicate()"
                         @tags-changed="newTags => variant.tags = newTags"
-                      />
+                      /> -->
+                      <div>
+                        <h4>{{ variant.title }}</h4>
+                        <h6>{{ variant.text }}</h6>
+                      </div>
                     </div>
                   </b-col>
 
