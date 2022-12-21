@@ -344,36 +344,7 @@ class ProductsController extends BaseController
         $this->authorizeForUser($request->user('api'), 'create', Product::class);
 
         try {
-            // $this->validate($request, [
-            //     'code' => 'required|unique:products',
-            //     'code' => Rule::unique('products')->where(function ($query) {
-            //         return $query->where('deleted_at', '=', null);
-            //     }),
-            //     'name' => 'required',
-            //     'Type_barcode' => 'required',
-            //     'price' => 'required',
-            //     'category_id' => 'required',
-            //     'cost' => 'required',
-            //     'unit_id' => 'required',
-            // ], [
-            //     'code.unique' => 'This code already used. Generate Now',
-            //     'code.required' => 'This field is required',
-            // ]);
             $attributes = array();
-
-            // $Product_variants_data = array();
-            // if ($request['is_variant'] == 'true') {
-            //     foreach ($request['variants'] as $variant) {
-            //         $Product_variants_data[] = $variant['text'];
-            //     }
-            // }
-            // $item['name'] = "Select coffee capsule tray size (for interior of drawer)";
-            // $item['id'] = 6;
-            // $item['position'] = 0;
-            // $item['visible'] = true;
-            // $item['variation'] = true;
-            // $item['options'] = $Product_variants_data;
-            // $attributes[] = $item;
 
             $data = [
                 'name' => $request['name'],
@@ -385,19 +356,7 @@ class ProductsController extends BaseController
                 'manage_stock' => true,
                 'stock_quantity' => $request['quantity'],
                 'attributes' => $attributes,
-                // 'categories' => [
-                //     [
-                //         'id' => $request['category_id']
-                //     ],
-                // ],
-                // 'images' => [
-                //     [
-                //         'src' => 'http://demo.woothemes.com/woocommerce/wp-content/uploads/sites/56/2013/06/T_2_front.jpg'
-                //     ],
-                //     [
-                //         'src' => 'http://demo.woothemes.com/woocommerce/wp-content/uploads/sites/56/2013/06/T_2_back.jpg'
-                //     ]
-                // ]
+                
             ];
 
             $product = $this->create_product_woo($data);
