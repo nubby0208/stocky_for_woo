@@ -286,7 +286,7 @@
                     </validation-provider>
                   </b-col>
 
-                  <!-- Product Price -->
+                  <!-- Product Quantity -->
                   <b-col md="6" class="mb-2">
                     <validation-provider
                       name="Product Quantity"
@@ -300,6 +300,7 @@
                           label="Quantity"
                           :placeholder="$t('Enter_Product_Quantity')"
                           v-model="product.quantity"
+                          :disabled="true" 
                         ></b-form-input>
 
                         <b-form-invalid-feedback

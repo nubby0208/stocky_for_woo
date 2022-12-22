@@ -293,6 +293,7 @@
                           label="Quantity"
                           :placeholder="$t('Enter_Product_Quantity')"
                           v-model="product.quantity"
+                          :disabled="true" 
                         ></b-form-input>
 
                         <b-form-invalid-feedback
