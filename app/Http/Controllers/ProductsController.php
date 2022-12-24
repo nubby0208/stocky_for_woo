@@ -890,63 +890,63 @@ class ProductsController extends BaseController
 
     }
 
-    //-------------- Delete by selection  ---------------\\
-
-    // public function delete_by_selection(Request $request)
-    // {
-    //     $this->authorizeForUser($request->user('api'), 'delete', Product::class);
-
-    //     \DB::transaction(function () use ($request) {
-    //         $selectedIds = $request->selectedIds;
-    //         foreach ($selectedIds as $product_id) {
-
-    //             $Product = Product::findOrFail($product_id);
-    //             $Product->deleted_at = Carbon::now();
-    //             $Product->save();
-
-    //             foreach (explode(',', $Product->image) as $img) {
-    //                 $pathIMG = public_path() . '/images/products/' . $img;
-    //                 if (file_exists($pathIMG)) {
-    //                     if ($img != 'no-image.png') {
-    //                         @unlink($pathIMG);
-    //                     }
-    //                 }
-    //             }
-
-    //             product_warehouse::where('product_id', $product_id)->update([
-    //                 'deleted_at' => Carbon::now(),
-    //             ]);
-
-    //             ProductVariant::where('product_id', $product_id)->update([
-    //                 'deleted_at' => Carbon::now(),
-    //             ]);
-    //         }
-
-    //     }, 10);
-
-    //     return response()->json(['success' => true]);
-
-    // }
+    -------------- Delete by selection  ---------------\\
 
     public function delete_by_selection(Request $request)
     {
         $this->authorizeForUser($request->user('api'), 'delete', Product::class);
 
-        $selectedIds = $request->selectedIds;
-        $success = true;
-        foreach ($selectedIds as $product_id) {
+        \DB::transaction(function () use ($request) {
+            $selectedIds = $request->selectedIds;
+            foreach ($selectedIds as $product_id) {
 
-            try{
-                $this->delete_product_woo($product_id);
-            }catch(HttpClientException $e){
-                $success = false;
+                $Product = Product::findOrFail($product_id);
+                $Product->deleted_at = Carbon::now();
+                $Product->save();
+
+                foreach (explode(',', $Product->image) as $img) {
+                    $pathIMG = public_path() . '/images/products/' . $img;
+                    if (file_exists($pathIMG)) {
+                        if ($img != 'no-image.png') {
+                            @unlink($pathIMG);
+                        }
+                    }
+                }
+
+                product_warehouse::where('product_id', $product_id)->update([
+                    'deleted_at' => Carbon::now(),
+                ]);
+
+                ProductVariant::where('product_id', $product_id)->update([
+                    'deleted_at' => Carbon::now(),
+                ]);
             }
 
-        }
+        }, 10);
 
-        return response()->json(['success' => $success]);
+        return response()->json(['success' => true]);
 
     }
+
+    // public function delete_by_selection(Request $request)
+    // {
+    //     $this->authorizeForUser($request->user('api'), 'delete', Product::class);
+
+    //     $selectedIds = $request->selectedIds;
+    //     $success = true;
+    //     foreach ($selectedIds as $product_id) {
+
+    //         try{
+    //             $this->delete_product_woo($product_id);
+    //         }catch(HttpClientException $e){
+    //             $success = false;
+    //         }
+
+    //     }
+
+    //     return response()->json(['success' => $success]);
+
+    // }
 
     public function delete_product_woo($id){
         $result = WooCommerce::delete('products/'.$id);
