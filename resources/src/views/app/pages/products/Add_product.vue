@@ -286,12 +286,12 @@
                       :rules="{ required: true , regex: /^\d*\.?\d*$/}"
                       v-slot="validationContext"
                     >
-                      <b-form-group :label="$t('Product Quantity') + ' ' + '*'">
+                      <b-form-group :label="$t('Product Quantity')">
                         <b-form-input
                           :state="getValidationState(validationContext)"
                           aria-describedby="ProductQuantity-feedback"
                           label="Quantity"
-                          :placeholder="$t('Enter_Product_Quantity')"
+                          :placeholder="$t('Initial_Product_Quantity')"
                           v-model="product.quantity"
                           :disabled="true" 
                         ></b-form-input>
@@ -450,7 +450,7 @@ export default {
         category_id: "",
         TaxNet: "0",
         tax_method: "1",
-        quantity: "",
+        quantity: "0",
         unit_id: "",
         unit_sale_id: "",
         unit_purchase_id: "",

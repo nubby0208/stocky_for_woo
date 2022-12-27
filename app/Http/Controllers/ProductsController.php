@@ -890,7 +890,7 @@ class ProductsController extends BaseController
 
     }
 
-    -------------- Delete by selection  ---------------\\
+    //-------------- Delete by selection  ---------------\\
 
     public function delete_by_selection(Request $request)
     {
