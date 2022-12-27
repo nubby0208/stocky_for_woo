@@ -282,11 +282,11 @@
                 <!-- Product Price -->
                 <b-col md="6" class="mb-2">
                     <validation-provider
-                      name="Product Quantity"
+                      name="Initial Product Quantity"
                       :rules="{ required: true , regex: /^\d*\.?\d*$/}"
                       v-slot="validationContext"
                     >
-                      <b-form-group :label="$t('Product Quantity')">
+                      <b-form-group :label="$t('Initial Product Quantity')">
                         <b-form-input
                           :state="getValidationState(validationContext)"
                           aria-describedby="ProductQuantity-feedback"
