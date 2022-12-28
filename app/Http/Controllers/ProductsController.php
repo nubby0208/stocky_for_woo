@@ -91,6 +91,34 @@ class ProductsController extends BaseController
                 $item['quantity'] = $total_qty;
             }
 
+            if($product->pos_id != -1){
+                if($product->pos_var_id == -1){
+                    $woo_product = $this->show_woo($product->pos_id);
+                    if($woo_product->stock_quantity){
+                        if($woo_product->stock_quantity != $total_qty){
+                            $product_warehouse = product_warehouse::where('product_id', $product->id)
+                                ->where('deleted_at', '=', null)
+                                ->first();
+                            $product_warehouse->qte += $woo_product->stock_quantity - $total_qty;
+                            $product_warehouse->save();
+                            $item['quantity'] = $woo_product->stock_quantity;
+                        }
+                    }
+                }else{
+                    $woo_product = $this->show_variation_woo($product->pos_id, $product->pos_var_id);
+                    if($woo_product->stock_quantity){
+                        if($woo_product->stock_quantity != $total_qty){
+                            $product_warehouse = product_warehouse::where('product_id', $product->id)
+                                ->where('deleted_at', '=', null)
+                                ->first();
+                            $product_warehouse->qte += $woo_product->stock_quantity - $total_qty;
+                            $product_warehouse->save();
+                            $item['quantity'] = $woo_product->stock_quantity;
+                        }
+                    }
+                }
+            }
+
             $firstimage = explode(',', $product->image);
             $item['image'] = $firstimage[0];
 
@@ -223,6 +251,21 @@ class ProductsController extends BaseController
         return $all_products;
     }
 
+    public function product_variant_list_woo($id){
+        $page = 1;
+        $product_variants = [];
+        $all_product_variants = [];
+        do{
+            try {
+                $product_variants = WooCommerce::all('products/'.$id.'/variations?per_page=100&page='.$page);
+            }catch(HttpClientException $e){
+            }
+        $all_product_variants = array_merge($all_product_variants,$product_variants);
+        $page++;
+        } while (count($product_variants) > 0);
+        return $all_product_variants;
+    }
+
     //-------------- Store new  Product  ---------------\\
 
     public function store(Request $request)
@@ -246,18 +289,29 @@ class ProductsController extends BaseController
                 'code.required' => 'This field is required',
             ]);
 
-            $products = $this->product_list_woo();
             $product_exist_woo = false;
             $temp_pos_id = -1;
+            $temp_pos_var_id = -1;
             $temp_pos_name = $request['name'];
             $temp_pos_price = $request['price'];
 
+            $products = $this->product_list_woo();
             foreach($products as $product){
                 if($product->sku == $request['code']){
                     $product_exist_woo = true;
                     $temp_pos_id = $product->id;
                     $temp_pos_name = $product->name;
                     $temp_pos_price = $product->price;
+                }else{
+                    $product_variants = $this->product_variant_list_woo($product->id);
+                    foreach($product_variants as $product_variant){
+                        if($product_variant->sku == $request['code']){
+                            $product_exist_woo = true;
+                            $temp_pos_id = $product->id;
+                            $temp_pos_var_id = $product_variant->id;
+                            $temp_pos_price = $product_variant->price;
+                        }
+                    }
                 }
             }
 
@@ -275,13 +329,14 @@ class ProductsController extends BaseController
             //     $temp_pos_id = $product->id;
             // }
 
-            \DB::transaction(function () use ($request, $temp_pos_id, $temp_pos_name, $temp_pos_price) {
+            \DB::transaction(function () use ($request, $temp_pos_id, $temp_pos_var_id, $temp_pos_name, $temp_pos_price) {
 
                 //-- Create New Product
                 $Product = new Product;
 
                 //-- Field Required
                 $Product->pos_id = $temp_pos_id;
+                $Product->pos_var_id = $temp_pos_var_id;
                 $Product->name = $temp_pos_name;
                 $Product->code = $request['code'];
                 $Product->Type_barcode = $request['Type_barcode'];
@@ -683,15 +738,22 @@ class ProductsController extends BaseController
                 }
                 
                 if($Product->pos_id != -1){
-                    $data = [
-                        'name' => $request['name'],
-                        'regular_price' => $request['price'],
-                        'sku' => $request['code'],
-                        'manage_stock' => true,
-                        'stock_quantity' => $request['quantity'],
-                    ];
-        
-                    $product = $this->update_product_woo($Product->pos_id, $data);
+                    if($Product->pos_var_id == -1){
+                        $data = [
+                            'name' => $request['name'],
+                            'regular_price' => $request['price'],
+                            'sku' => $request['code'],
+                        ];
+            
+                        $product = $this->update_product_woo($Product->pos_id, $data);
+                    }else{
+                        $data = [
+                            'regular_price' => $request['price'],
+                            'sku' => $request['code'],
+                        ];
+
+                        $product = $this->update_product_variation_woo($Product->pos_id, $Product->pos_var_id, $data);
+                    }
                 }
 
                 
@@ -870,6 +932,11 @@ class ProductsController extends BaseController
 
     public function update_product_woo($id, $data){
         $result = WooCommerce::update('products/'.$id, $data);
+        return $result;
+    }
+
+    public function update_product_variation_woo($product_id, $product_variation_id, $data){
+        $result = WooCommerce::update('products/'.$product_id.'/'.'variations/'.$product_variation_id, $data);
         return $result;
     }
 

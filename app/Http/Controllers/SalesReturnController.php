@@ -28,6 +28,7 @@ use \Nwidart\Modules\Facades\Module;
 use App\Models\sms_gateway;
 use DB;
 use PDF;
+use WooCommerce;
 
 class SalesReturnController extends BaseController
 {
@@ -246,6 +247,36 @@ class SalesReturnController extends BaseController
                             $product_warehouse->save();
                         }
                     }
+
+                    $product_warehouse_data = product_warehouse::where('product_id', $value['product_id'])
+                        ->where('deleted_at', '=', null)
+                        ->get();
+                    $total_qty = 0;
+                    foreach ($product_warehouse_data as $product_warehouse) {
+                        $total_qty += $product_warehouse->qte;
+                    }
+
+                    $Product = Product::where('id', $value['product_id'])
+                        ->where('deleted_at', '=', null)
+                        ->first();
+
+                    if($Product->pos_id != -1){
+                        if($Product->pos_var_id == -1){
+                            $data = [
+                                'manage_stock' => true,
+                                'stock_quantity' => $total_qty,
+                            ];
+                
+                            $product = $this->update_product_woo($Product->pos_id, $data);
+                        }else{
+                            $data = [
+                                'manage_stock' => true,
+                                'stock_quantity' => $total_qty,
+                            ];
+    
+                            $product = $this->update_product_variation_woo($Product->pos_id, $Product->pos_var_id, $data);
+                        }
+                    }
                 }
 
             }
@@ -255,6 +286,15 @@ class SalesReturnController extends BaseController
         return response()->json(['success' => true]);
     }
 
+    public function update_product_woo($id, $data){
+        $result = WooCommerce::update('products/'.$id, $data);
+        return $result;
+    }
+
+    public function update_product_variation_woo($product_id, $product_variation_id, $data){
+        $result = WooCommerce::update('products/'.$product_id.'/'.'variations/'.$product_variation_id, $data);
+        return $result;
+    }
     //------------ Update Return Sale--------------\\
 
     public function update(Request $request, $id)
@@ -327,6 +367,36 @@ class SalesReturnController extends BaseController
                                 $product_warehouse->save();
                             }
                         }
+
+                        $product_warehouse_data = product_warehouse::where('product_id', $value['product_id'])
+                            ->where('deleted_at', '=', null)
+                            ->get();
+                        $total_qty = 0;
+                        foreach ($product_warehouse_data as $product_warehouse) {
+                            $total_qty += $product_warehouse->qte;
+                        }
+
+                        $Product = Product::where('id', $value['product_id'])
+                            ->where('deleted_at', '=', null)
+                            ->first();
+
+                        if($Product->pos_id != -1){
+                            if($Product->pos_var_id == -1){
+                                $data = [
+                                    'manage_stock' => true,
+                                    'stock_quantity' => $total_qty,
+                                ];
+                    
+                                $product = $this->update_product_woo($Product->pos_id, $data);
+                            }else{
+                                $data = [
+                                    'manage_stock' => true,
+                                    'stock_quantity' => $total_qty,
+                                ];
+        
+                                $product = $this->update_product_variation_woo($Product->pos_id, $Product->pos_var_id, $data);
+                            }
+                        }
                     }
 
                     // Delete Detail
@@ -375,6 +445,36 @@ class SalesReturnController extends BaseController
                                     $product_warehouse->qte += $product_detail['quantity'] * $unit_prod->operator_value;
                                 }
                                 $product_warehouse->save();
+                            }
+                        }
+
+                        $product_warehouse_data = product_warehouse::where('product_id', $product_detail['product_id'])
+                            ->where('deleted_at', '=', null)
+                            ->get();
+                        $total_qty = 0;
+                        foreach ($product_warehouse_data as $product_warehouse) {
+                            $total_qty += $product_warehouse->qte;
+                        }
+
+                        $Product = Product::where('id', $product_detail['product_id'])
+                            ->where('deleted_at', '=', null)
+                            ->first();
+
+                        if($Product->pos_id != -1){
+                            if($Product->pos_var_id == -1){
+                                $data = [
+                                    'manage_stock' => true,
+                                    'stock_quantity' => $total_qty,
+                                ];
+                    
+                                $product = $this->update_product_woo($Product->pos_id, $data);
+                            }else{
+                                $data = [
+                                    'manage_stock' => true,
+                                    'stock_quantity' => $total_qty,
+                                ];
+        
+                                $product = $this->update_product_variation_woo($Product->pos_id, $Product->pos_var_id, $data);
                             }
                         }
                     }
@@ -486,6 +586,36 @@ class SalesReturnController extends BaseController
                             $product_warehouse->save();
                         }
                     }
+
+                    $product_warehouse_data = product_warehouse::where('product_id', $value['product_id'])
+                        ->where('deleted_at', '=', null)
+                        ->get();
+                    $total_qty = 0;
+                    foreach ($product_warehouse_data as $product_warehouse) {
+                        $total_qty += $product_warehouse->qte;
+                    }
+
+                    $Product = Product::where('id', $value['product_id'])
+                        ->where('deleted_at', '=', null)
+                        ->first();
+
+                    if($Product->pos_id != -1){
+                        if($Product->pos_var_id == -1){
+                            $data = [
+                                'manage_stock' => true,
+                                'stock_quantity' => $total_qty,
+                            ];
+                
+                            $product = $this->update_product_woo($Product->pos_id, $data);
+                        }else{
+                            $data = [
+                                'manage_stock' => true,
+                                'stock_quantity' => $total_qty,
+                            ];
+    
+                            $product = $this->update_product_variation_woo($Product->pos_id, $Product->pos_var_id, $data);
+                        }
+                    }
                 }
 
             }
@@ -565,6 +695,36 @@ class SalesReturnController extends BaseController
                                $product_warehouse->save();
                            }
                        }
+
+                       $product_warehouse_data = product_warehouse::where('product_id', $value['product_id'])
+                            ->where('deleted_at', '=', null)
+                            ->get();
+                        $total_qty = 0;
+                        foreach ($product_warehouse_data as $product_warehouse) {
+                            $total_qty += $product_warehouse->qte;
+                        }
+
+                        $Product = Product::where('id', $value['product_id'])
+                            ->where('deleted_at', '=', null)
+                            ->first();
+
+                        if($Product->pos_id != -1){
+                            if($Product->pos_var_id == -1){
+                                $data = [
+                                    'manage_stock' => true,
+                                    'stock_quantity' => $total_qty,
+                                ];
+                    
+                                $product = $this->update_product_woo($Product->pos_id, $data);
+                            }else{
+                                $data = [
+                                    'manage_stock' => true,
+                                    'stock_quantity' => $total_qty,
+                                ];
+        
+                                $product = $this->update_product_variation_woo($Product->pos_id, $Product->pos_var_id, $data);
+                            }
+                        }
                    }
    
                }
