@@ -2145,33 +2145,28 @@ export default {
     },
     //---------- keyup Credit Amount
     Verified_creditAmount() {
+      let payamount = this.payment.amount;
       if (isNaN(this.payment.creditamount) || this.payment.creditamount == '') {
-        console.log(1);
         this.payment.creditamount = 0;
-        this.payment.cashamount = 120;
-      } else if(this.payment.creditamount > 120){
-        console.log(2);
+        this.payment.cashamount = payamount;
+      } else if(this.payment.creditamount > payamount){
         this.payment.creditamount = 0;
-        this.payment.cashamount = 120;
+        this.payment.cashamount = payamount;
       } else {
-        console.log(this.payment.cashamount);
-        this.payment.cashamount = 120 - 0;
-        this.payment.cashamount = 120 - this.payment.creditamount;
+        this.payment.cashamount = payamount - this.payment.creditamount;
       }
     },
     //---------- keyup Cash Amount
     Verified_cashAmount() {
+      let payamount = this.payment.amount;
       if (isNaN(this.payment.cashamount) || this.payment.cashamount == '') {
-        console.log(11);
         this.payment.cashamount = 0;
-        this.payment.creditamount = 120;
-      } else if(this.payment.cashamount > 120){
-        console.log(22);
+        this.payment.creditamount = payamount;
+      } else if(this.payment.cashamount > payamount){
         this.payment.cashamount = 0;
-        this.payment.creditamount = 120;
+        this.payment.creditamount = payamount;
       } else {
-        console.log(33);
-        this.payment.creditamount = 120 - this.payment.cashamount;
+        this.payment.creditamount = payamount - this.payment.cashamount;
       }
     },
     //---------- keyup Received Amount
