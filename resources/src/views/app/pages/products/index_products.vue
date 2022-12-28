@@ -105,7 +105,7 @@
               height="50"
               width="50"
               fluid
-              :src="props.row.image"
+              :src="'/images/products/' + props.row.image"
               alt="image1"
             ></b-img>
           </span>
