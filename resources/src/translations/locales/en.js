@@ -1,6 +1,7 @@
 //Language Anglais
 
 export default {
+    Is_POS:'POS Sale',
     Receipt:'Receipt',
     Pos_Settings:'Pos Settings (Receipt)',
     Note_to_customer:'Note to customer',

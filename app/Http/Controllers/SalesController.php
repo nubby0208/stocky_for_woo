@@ -219,7 +219,7 @@ class SalesController extends BaseController
         
         $item = array();
         foreach ($Sales as $Sale) {
-            if(property_exists($Sale, 'is_pos')){
+            if(isset($Sale->is_pos)){
                 $item['id'] = $Sale->id;
                 $item['date'] = $Sale->date;
                 $item['Ref'] = $Sale->Ref;
@@ -241,7 +241,7 @@ class SalesController extends BaseController
                 $item['payment_status'] = $Sale->payment_status;
                 $item['salereturn_id'] = $Sale->salereturn_id;
                 $item['sale_has_return'] = $Sale->sale_has_return;
-
+                $item['is_pos'] = true;
             }else{
                 $item['id'] = $Sale->id;
                 $item['date'] = $Sale->date_paid;
@@ -263,6 +263,7 @@ class SalesController extends BaseController
                 $item['due'] = number_format($Sale->total - $Sale->total, 2, '.', '');
                 $item['payment_status'] = $Sale->status;
                 $item['sale_has_return'] = 'no';
+                $item['is_pos'] = false;
             }
             $data[] = $item;
         }
@@ -1035,123 +1036,128 @@ class SalesController extends BaseController
             $role = Auth::user()->roles()->first();
             $view_records = Role::findOrFail($role->id)->inRole('record_view');
             $selectedIds = $request->selectedIds;
+            $deleted = true;
             foreach ($selectedIds as $sale_id) {
 
                 if (SaleReturn::where('sale_id', $sale_id)->where('deleted_at', '=', null)->exists()) {
                     return response()->json(['success' => false , 'Return exist for the Transaction' => false], 403);
                 }else{
-                    $current_Sale = Sale::findOrFail($sale_id);
-                    $old_sale_details = SaleDetail::where('sale_id', $sale_id)->get();
-                    $shipment_data =  Shipment::where('sale_id', $sale_id)->first();
+                    $current_Sale = Sale::find($sale_id);
+                    if($current_Sale){
+                        $old_sale_details = SaleDetail::where('sale_id', $sale_id)->get();
+                        $shipment_data =  Shipment::where('sale_id', $sale_id)->first();
 
-                    // Check If User Has Permission view All Records
-                    if (!$view_records) {
-                        // Check If User->id === current_Sale->id
-                        $this->authorizeForUser($request->user('api'), 'check_record', $current_Sale);
-                    }
-                    foreach ($old_sale_details as $key => $value) {
-                    
-                        //check if detail has sale_unit_id Or Null
-                        if($value['sale_unit_id'] !== null){
-                            $old_unit = Unit::where('id', $value['sale_unit_id'])->first();
-                        }else{
-                            $product_unit_sale_id = Product::with('unitSale')
-                            ->where('id', $value['product_id'])
-                            ->first();
-                            $old_unit = Unit::where('id', $product_unit_sale_id['unitSale']->id)->first();
+                        // Check If User Has Permission view All Records
+                        if (!$view_records) {
+                            // Check If User->id === current_Sale->id
+                            $this->authorizeForUser($request->user('api'), 'check_record', $current_Sale);
                         }
-        
-                        if ($current_Sale->statut == "completed") {
-        
-                            if ($value['product_variant_id'] !== null) {
-                                $product_warehouse = product_warehouse::where('deleted_at', '=', null)
-                                    ->where('warehouse_id', $current_Sale->warehouse_id)
-                                    ->where('product_id', $value['product_id'])
-                                    ->where('product_variant_id', $value['product_variant_id'])
-                                    ->first();
-        
-                                if ($product_warehouse) {
-                                    if ($old_unit->operator == '/') {
-                                        $product_warehouse->qte += $value['quantity'] / $old_unit->operator_value;
-                                    } else {
-                                        $product_warehouse->qte += $value['quantity'] * $old_unit->operator_value;
-                                    }
-                                    $product_warehouse->save();
-                                }
-        
-                            } else {
-                                $product_warehouse = product_warehouse::where('deleted_at', '=', null)
-                                    ->where('warehouse_id', $current_Sale->warehouse_id)
-                                    ->where('product_id', $value['product_id'])
-                                    ->first();
-                                if ($product_warehouse) {
-                                    if ($old_unit->operator == '/') {
-                                        $product_warehouse->qte += $value['quantity'] / $old_unit->operator_value;
-                                    } else {
-                                        $product_warehouse->qte += $value['quantity'] * $old_unit->operator_value;
-                                    }
-                                    $product_warehouse->save();
-                                }
-                            }
-
-                            $product_warehouse_data = product_warehouse::where('product_id', $value['product_id'])
-                                ->where('deleted_at', '=', null)
-                                ->get();
-                            $total_qty = 0;
-                            foreach ($product_warehouse_data as $product_warehouse) {
-                                $total_qty += $product_warehouse->qte;
-                            }       
-                            $Product = Product::where('id', $value['product_id'])
-                                ->where('deleted_at', '=', null)
-                                ->first();       
-                            if($Product->pos_id != -1){
-                                if($Product->pos_var_id == -1){
-                                    $data = [
-                                        'manage_stock' => true,
-                                        'stock_quantity' => $total_qty,
-                                    ];
+                        foreach ($old_sale_details as $key => $value) {
                         
-                                    $product = $this->update_product_woo($Product->pos_id, $data);
-                                }else{
-                                    $data = [
-                                        'manage_stock' => true,
-                                        'stock_quantity' => $total_qty,
-                                    ];
+                            //check if detail has sale_unit_id Or Null
+                            if($value['sale_unit_id'] !== null){
+                                $old_unit = Unit::where('id', $value['sale_unit_id'])->first();
+                            }else{
+                                $product_unit_sale_id = Product::with('unitSale')
+                                ->where('id', $value['product_id'])
+                                ->first();
+                                $old_unit = Unit::where('id', $product_unit_sale_id['unitSale']->id)->first();
+                            }
             
-                                    $product = $this->update_product_variation_woo($Product->pos_id, $Product->pos_var_id, $data);
+                            if ($current_Sale->statut == "completed") {
+            
+                                if ($value['product_variant_id'] !== null) {
+                                    $product_warehouse = product_warehouse::where('deleted_at', '=', null)
+                                        ->where('warehouse_id', $current_Sale->warehouse_id)
+                                        ->where('product_id', $value['product_id'])
+                                        ->where('product_variant_id', $value['product_variant_id'])
+                                        ->first();
+            
+                                    if ($product_warehouse) {
+                                        if ($old_unit->operator == '/') {
+                                            $product_warehouse->qte += $value['quantity'] / $old_unit->operator_value;
+                                        } else {
+                                            $product_warehouse->qte += $value['quantity'] * $old_unit->operator_value;
+                                        }
+                                        $product_warehouse->save();
+                                    }
+            
+                                } else {
+                                    $product_warehouse = product_warehouse::where('deleted_at', '=', null)
+                                        ->where('warehouse_id', $current_Sale->warehouse_id)
+                                        ->where('product_id', $value['product_id'])
+                                        ->first();
+                                    if ($product_warehouse) {
+                                        if ($old_unit->operator == '/') {
+                                            $product_warehouse->qte += $value['quantity'] / $old_unit->operator_value;
+                                        } else {
+                                            $product_warehouse->qte += $value['quantity'] * $old_unit->operator_value;
+                                        }
+                                        $product_warehouse->save();
+                                    }
+                                }
+
+                                $product_warehouse_data = product_warehouse::where('product_id', $value['product_id'])
+                                    ->where('deleted_at', '=', null)
+                                    ->get();
+                                $total_qty = 0;
+                                foreach ($product_warehouse_data as $product_warehouse) {
+                                    $total_qty += $product_warehouse->qte;
+                                }       
+                                $Product = Product::where('id', $value['product_id'])
+                                    ->where('deleted_at', '=', null)
+                                    ->first();       
+                                if($Product->pos_id != -1){
+                                    if($Product->pos_var_id == -1){
+                                        $data = [
+                                            'manage_stock' => true,
+                                            'stock_quantity' => $total_qty,
+                                        ];
+                            
+                                        $product = $this->update_product_woo($Product->pos_id, $data);
+                                    }else{
+                                        $data = [
+                                            'manage_stock' => true,
+                                            'stock_quantity' => $total_qty,
+                                        ];
+                
+                                        $product = $this->update_product_variation_woo($Product->pos_id, $Product->pos_var_id, $data);
+                                    }
                                 }
                             }
+                            
+                        }
+
+                        if($shipment_data){
+                            $shipment_data->delete();
                         }
                         
-                    }
-
-                    if($shipment_data){
-                        $shipment_data->delete();
-                    }
-                    
-                    $current_Sale->details()->delete();
-                    $current_Sale->update([
-                        'deleted_at' => Carbon::now(),
-                        'shipping_status' => NULL,
-                    ]);
+                        $current_Sale->details()->delete();
+                        $current_Sale->update([
+                            'deleted_at' => Carbon::now(),
+                            'shipping_status' => NULL,
+                        ]);
 
 
-                    $Payment_Sale_data = PaymentSale::where('sale_id', $sale_id)->get();
-                    foreach($Payment_Sale_data as $Payment_Sale){
-                        if($Payment_Sale->Reglement == 'credit card') {
-                            $PaymentWithCreditCard = PaymentWithCreditCard::where('payment_id', $Payment_Sale->id)->first();
-                            if($PaymentWithCreditCard){
-                                $PaymentWithCreditCard->delete();
+                        $Payment_Sale_data = PaymentSale::where('sale_id', $sale_id)->get();
+                        foreach($Payment_Sale_data as $Payment_Sale){
+                            if($Payment_Sale->Reglement == 'credit card') {
+                                $PaymentWithCreditCard = PaymentWithCreditCard::where('payment_id', $Payment_Sale->id)->first();
+                                if($PaymentWithCreditCard){
+                                    $PaymentWithCreditCard->delete();
+                                }
                             }
+                            $Payment_Sale->delete();
                         }
-                        $Payment_Sale->delete();
+                    }else{
+                        $deleted = false;
                     }
                 }
             }
 
         }, 10);
 
-        return response()->json(['success' => true]);
+        return response()->json(['success' => $deleted]);
     }
 
    

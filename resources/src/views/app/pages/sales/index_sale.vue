@@ -63,7 +63,7 @@
         </div>
 
         <template slot="table-row" slot-scope="props">
-          <span v-if="props.column.field == 'actions'">
+          <span v-if="props.column.field == 'actions' && props.row.is_pos">
             <div>
               <b-dropdown
                 id="dropdown-right"
@@ -209,6 +209,17 @@
             >{{$t('Delivered')}}</span>
 
             <span v-else-if="props.row.shipping_status == 'cancelled'" class="badge badge-outline-danger">{{$t('Cancelled')}}</span>
+          </div>
+          <div v-else-if="props.column.field == 'is_pos'">
+            <span
+              v-if="props.row.is_pos == true"
+              class="badge badge-outline-success"
+            >{{$t('Yes')}}</span>
+            <span
+              v-else-if="props.row.is_pos == false"
+              class="badge badge-outline-primary"
+            >{{$t('No')}}</span>
+            <span v-else class="badge badge-outline-warning">{{$t('No')}}</span>
           </div>
            <div v-else-if="props.column.field == 'Ref'">
               <router-link
@@ -943,6 +954,12 @@ export default {
           label: this.$t("Shipping_status"),
           field: "shipping_status",
           html: true,
+          tdClass: "text-left",
+          thClass: "text-left"
+        },
+        {
+          label: this.$t("Is_POS"),
+          field: "is_pos",
           tdClass: "text-left",
           thClass: "text-left"
         },
