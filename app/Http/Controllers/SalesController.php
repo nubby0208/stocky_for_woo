@@ -32,141 +32,12 @@ use DB;
 use PDF;
 use \Nwidart\Modules\Facades\Module;
 use WooCommerce;
+use \stdClass;
 
 class SalesController extends BaseController
 {
 
     //------------- GET ALL SALES -----------\\
-
-    // public function index(request $request)
-    // {
-    //     $this->authorizeForUser($request->user('api'), 'view', Sale::class);
-    //     $role = Auth::user()->roles()->first();
-    //     $view_records = Role::findOrFail($role->id)->inRole('record_view');
-    //     // How many items do you want to display.
-    //     $perPage = $request->limit;
-
-    //     $pageStart = \Request::get('page', 1);
-    //     // Start displaying items from this number;
-    //     $offSet = ($pageStart * $perPage) - $perPage;
-    //     $order = $request->SortField;
-    //     $dir = $request->SortType;
-    //     $helpers = new helpers();
-    //     // Filter fields With Params to retrieve
-    //     $param = array(
-    //         0 => 'like',
-    //         1 => 'like',
-    //         2 => '=',
-    //         3 => 'like',
-    //         4 => '=',
-    //         5 => '=',
-    //         6 => 'like',
-    //     );
-    //     $columns = array(
-    //         0 => 'Ref',
-    //         1 => 'statut',
-    //         2 => 'client_id',
-    //         3 => 'payment_statut',
-    //         4 => 'warehouse_id',
-    //         5 => 'date',
-    //         6 => 'shipping_status',
-    //     );
-    //     $data = array();
-
-    //     // Check If User Has Permission View  All Records
-    //     $Sales = Sale::with('facture', 'client', 'warehouse','user')
-    //         ->where('deleted_at', '=', null)
-    //         ->where(function ($query) use ($view_records) {
-    //             if (!$view_records) {
-    //                 return $query->where('user_id', '=', Auth::user()->id);
-    //             }
-    //         });
-    //     //Multiple Filter
-    //     $Filtred = $helpers->filter($Sales, $columns, $param, $request)
-    //     // Search With Multiple Param
-    //         ->where(function ($query) use ($request) {
-    //             return $query->when($request->filled('search'), function ($query) use ($request) {
-    //                 return $query->where('Ref', 'LIKE', "%{$request->search}%")
-    //                     ->orWhere('statut', 'LIKE', "%{$request->search}%")
-    //                     ->orWhere('GrandTotal', $request->search)
-    //                     ->orWhere('payment_statut', 'like', "%{$request->search}%")
-    //                     ->orWhere('shipping_status', 'like', "%{$request->search}%")
-    //                     ->orWhere(function ($query) use ($request) {
-    //                         return $query->whereHas('client', function ($q) use ($request) {
-    //                             $q->where('name', 'LIKE', "%{$request->search}%");
-    //                         });
-    //                     })
-    //                     ->orWhere(function ($query) use ($request) {
-    //                         return $query->whereHas('warehouse', function ($q) use ($request) {
-    //                             $q->where('name', 'LIKE', "%{$request->search}%");
-    //                         });
-    //                     });
-    //             });
-    //         });
-
-    //     $totalRows = $Filtred->count();
-    //     if($perPage == "-1"){
-    //         $perPage = $totalRows;
-    //     }
-        
-    //     $Sales = $Filtred->offset($offSet)
-    //         ->limit($perPage)
-    //         ->orderBy($order, $dir)
-    //         ->get();
-
-    //     foreach ($Sales as $Sale) {
-            
-    //         $item['id'] = $Sale['id'];
-    //         $item['date'] = $Sale['date'];
-    //         $item['Ref'] = $Sale['Ref'];
-    //         $item['created_by'] = $Sale['user']->username;
-    //         $item['statut'] = $Sale['statut'];
-    //         $item['shipping_status'] =  $Sale['shipping_status'];
-    //         $item['discount'] = $Sale['discount'];
-    //         $item['shipping'] = $Sale['shipping'];
-    //         $item['warehouse_name'] = $Sale['warehouse']['name'];
-    //         $item['client_id'] = $Sale['client']['id'];
-    //         $item['client_name'] = $Sale['client']['name'];
-    //         $item['client_email'] = $Sale['client']['email'];
-    //         $item['client_tele'] = $Sale['client']['phone'];
-    //         $item['client_code'] = $Sale['client']['code'];
-    //         $item['client_adr'] = $Sale['client']['adresse'];
-    //         $item['GrandTotal'] = number_format($Sale['GrandTotal'], 2, '.', '');
-    //         $item['paid_amount'] = number_format($Sale['paid_amount'], 2, '.', '');
-    //         $item['due'] = number_format($item['GrandTotal'] - $item['paid_amount'], 2, '.', '');
-    //         $item['payment_status'] = $Sale['payment_statut'];
-
-    //         if (SaleReturn::where('sale_id', $Sale['id'])->where('deleted_at', '=', null)->exists()) {
-    //             $sellReturn = SaleReturn::where('sale_id', $Sale['id'])->where('deleted_at', '=', null)->first();
-    //             $item['salereturn_id'] = $sellReturn->id;
-    //             $item['sale_has_return'] = 'yes';
-    //         }else{
-    //             $item['sale_has_return'] = 'no';
-    //         }
-            
-    //         $data[] = $item;
-    //     }
-        
-    //     $stripe_key = config('app.STRIPE_KEY');
-    //     $customers = client::where('deleted_at', '=', null)->get(['id', 'name']);
-
-    //    //get warehouses assigned to user
-    //    $user_auth = auth()->user();
-    //    if($user_auth->is_all_warehouses){
-    //        $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
-    //    }else{
-    //        $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-    //        $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
-    //    }
-
-    //     return response()->json([
-    //         'stripe_key' => $stripe_key,
-    //         'totalRows' => $totalRows,
-    //         'sales' => $data,
-    //         'customers' => $customers,
-    //         'warehouses' => $warehouses,
-    //     ]);
-    // }
 
     public function index(request $request)
     {
@@ -204,30 +75,140 @@ class SalesController extends BaseController
         $data = array();
 
         // Check If User Has Permission View  All Records
+        $pos_Sales = Sale::with('facture', 'client', 'warehouse','user')
+            ->where('deleted_at', '=', null)
+            ->where(function ($query) use ($view_records) {
+                if (!$view_records) {
+                    return $query->where('user_id', '=', Auth::user()->id);
+                }
+            });
+        $Filtred_pos = $helpers->filter($pos_Sales, $columns, $param, $request)
+        // Search With Multiple Param
+            ->where(function ($query) use ($request) {
+                return $query->when($request->filled('search'), function ($query) use ($request) {
+                    return $query->where('Ref', 'LIKE', "%{$request->search}%")
+                        ->orWhere('statut', 'LIKE', "%{$request->search}%")
+                        ->orWhere('GrandTotal', $request->search)
+                        ->orWhere('payment_statut', 'like', "%{$request->search}%")
+                        ->orWhere('shipping_status', 'like', "%{$request->search}%")
+                        ->orWhere(function ($query) use ($request) {
+                            return $query->whereHas('client', function ($q) use ($request) {
+                                $q->where('name', 'LIKE', "%{$request->search}%");
+                            });
+                        })
+                        ->orWhere(function ($query) use ($request) {
+                            return $query->whereHas('warehouse', function ($q) use ($request) {
+                                $q->where('name', 'LIKE', "%{$request->search}%");
+                            });
+                        });
+                });
+            });
+        $pos_Sales = $Filtred_pos->orderBy($order, $dir)
+            ->get();
+
         $Sales = $this->sale_list_woo();
 
-        //Multiple Filter
+        foreach ($pos_Sales as $Sale) {
+            $item = new stdClass();
+            $item->is_pos = true;
+            $item->id = $Sale['id'];
+            $item->date = $Sale['date'];
+            $item->Ref = $Sale['Ref'];
+            $item->created_by = $Sale['user']->username;
+            $item->statut = $Sale['statut'];
+            $item->shipping_status =  $Sale['shipping_status'];
+            $item->discount = $Sale['discount'];
+            $item->shipping = $Sale['shipping'];
+            $item->warehouse_name = $Sale['warehouse']['name'];
+            $item->client_id = $Sale['client']['id'];
+            $item->client_name = $Sale['client']['name'];
+            $item->client_email = $Sale['client']['email'];
+            $item->client_tele = $Sale['client']['phone'];
+            $item->client_code = $Sale['client']['code'];
+            $item->client_adr = $Sale['client']['adresse'];
+            $item->GrandTotal = number_format($Sale['GrandTotal'], 2, '.', '');
+            $item->paid_amount = number_format($Sale['paid_amount'], 2, '.', '');
+            $item->due = number_format($item->GrandTotal - $item->paid_amount, 2, '.', '');
+            $item->payment_status = $Sale['payment_statut'];
+
+
+            $item->salereturn_id = -1;
+            if (SaleReturn::where('sale_id', $Sale['id'])->where('deleted_at', '=', null)->exists()) {
+                $sellReturn = SaleReturn::where('sale_id', $Sale['id'])->where('deleted_at', '=', null)->first();
+                $item->salereturn_id = $sellReturn->id;
+                $item->sale_has_return = 'yes';
+            }else{
+                $item->sale_has_return = 'no';
+            }
+            
+            $Sales[] = $item;
+        }
+        
+        // //Multiple Filter
         // $Filtred = $helpers->filter($Sales, $columns, $param, $request)
-        // Search With Multiple Param
-            // ->where(function ($query) use ($request) {
-            //     return $query->when($request->filled('search'), function ($query) use ($request) {
-            //         return $query->where('Ref', 'LIKE', "%{$request->search}%")
-            //             ->orWhere('statut', 'LIKE', "%{$request->search}%")
-            //             ->orWhere('GrandTotal', $request->search)
-            //             ->orWhere('payment_statut', 'like', "%{$request->search}%")
-            //             ->orWhere('shipping_status', 'like', "%{$request->search}%")
-            //             ->orWhere(function ($query) use ($request) {
-            //                 return $query->whereHas('client', function ($q) use ($request) {
-            //                     $q->where('name', 'LIKE', "%{$request->search}%");
-            //                 });
-            //             })
-            //             ->orWhere(function ($query) use ($request) {
-            //                 return $query->whereHas('warehouse', function ($q) use ($request) {
-            //                     $q->where('name', 'LIKE', "%{$request->search}%");
-            //                 });
-            //             });
-            //     });
-            // });
+        // // Search With Multiple Param
+        //     ->where(function ($query) use ($request) {
+        //         return $query->when($request->filled('search'), function ($query) use ($request) {
+        //             return $query->where('Ref', 'LIKE', "%{$request->search}%")
+        //                 ->orWhere('statut', 'LIKE', "%{$request->search}%")
+        //                 ->orWhere('GrandTotal', $request->search)
+        //                 ->orWhere('payment_statut', 'like', "%{$request->search}%")
+        //                 ->orWhere('shipping_status', 'like', "%{$request->search}%")
+        //                 ->orWhere(function ($query) use ($request) {
+        //                     return $query->whereHas('client', function ($q) use ($request) {
+        //                         $q->where('name', 'LIKE', "%{$request->search}%");
+        //                     });
+        //                 })
+        //                 ->orWhere(function ($query) use ($request) {
+        //                     return $query->whereHas('warehouse', function ($q) use ($request) {
+        //                         $q->where('name', 'LIKE', "%{$request->search}%");
+        //                     });
+        //                 });
+        //         });
+        //     });
+
+        // $totalRows = $Filtred->count();
+        // if($perPage == "-1"){
+        //     $perPage = $totalRows;
+        // }
+        
+        // $Sales = $Filtred->offset($offSet)
+        //     ->limit($perPage)
+        //     ->orderBy($order, $dir)
+        //     ->get();
+
+        // foreach ($Sales as $Sale) {
+            
+        //     $item['id'] = $Sale['id'];
+        //     $item['date'] = $Sale['date'];
+        //     $item['Ref'] = $Sale['Ref'];
+        //     $item['created_by'] = $Sale['user']->username;
+        //     $item['statut'] = $Sale['statut'];
+        //     $item['shipping_status'] =  $Sale['shipping_status'];
+        //     $item['discount'] = $Sale['discount'];
+        //     $item['shipping'] = $Sale['shipping'];
+        //     $item['warehouse_name'] = $Sale['warehouse']['name'];
+        //     $item['client_id'] = $Sale['client']['id'];
+        //     $item['client_name'] = $Sale['client']['name'];
+        //     $item['client_email'] = $Sale['client']['email'];
+        //     $item['client_tele'] = $Sale['client']['phone'];
+        //     $item['client_code'] = $Sale['client']['code'];
+        //     $item['client_adr'] = $Sale['client']['adresse'];
+        //     $item['GrandTotal'] = number_format($Sale['GrandTotal'], 2, '.', '');
+        //     $item['paid_amount'] = number_format($Sale['paid_amount'], 2, '.', '');
+        //     $item['due'] = number_format($item['GrandTotal'] - $item['paid_amount'], 2, '.', '');
+        //     $item['payment_status'] = $Sale['payment_statut'];
+
+        //     if (SaleReturn::where('sale_id', $Sale['id'])->where('deleted_at', '=', null)->exists()) {
+        //         $sellReturn = SaleReturn::where('sale_id', $Sale['id'])->where('deleted_at', '=', null)->first();
+        //         $item['salereturn_id'] = $sellReturn->id;
+        //         $item['sale_has_return'] = 'yes';
+        //     }else{
+        //         $item['sale_has_return'] = 'no';
+        //     }
+            
+        //     $data[] = $item;
+        // }
 
         $Filtred = $Sales;
         $totalRows = count($Filtred);
@@ -236,32 +217,56 @@ class SalesController extends BaseController
         }
         $Sales = array_slice($Filtred,$offSet,$perPage);
         
+        $item = array();
         foreach ($Sales as $Sale) {
-            
-            $item['id'] = $Sale->id;
-            $item['date'] = $Sale->date_paid;
-            $item['Ref'] = 'Ref';
-            $item['created_by'] = $Sale->customer_id;
-            $item['statut'] = $Sale->status;
-            $item['shipping_status'] =  $Sale->shipping->state;
-            $item['discount'] = $Sale->discount_total;
-            $item['shipping'] = 'shipping';
-            $item['warehouse_name'] = 'warehouse';
-            $item['client_id'] = 'clientid';
-            $item['client_name'] = 'clientname';
-            $item['client_email'] = 'clientemail';
-            $item['client_tele'] = 'clientphone';
-            $item['client_code'] = 'clientcode';
-            $item['client_adr'] = 'clientadresse';
-            $item['GrandTotal'] = number_format($Sale->total, 2, '.', '');
-            $item['paid_amount'] = number_format($Sale->total, 2, '.', '');
-            $item['due'] = number_format($Sale->total - $Sale->total, 2, '.', '');
-            $item['payment_status'] = $Sale->status;
-            $item['sale_has_return'] = 'no';
+            if(property_exists($Sale, 'is_pos')){
+                $item['id'] = $Sale->id;
+                $item['date'] = $Sale->date;
+                $item['Ref'] = $Sale->Ref;
+                $item['created_by'] = $Sale->created_by;
+                $item['statut'] = $Sale->statut;
+                $item['shipping_status'] =  $Sale->shipping_status;
+                $item['discount'] = $Sale->discount;
+                $item['shipping'] = $Sale->shipping;
+                $item['warehouse_name'] = $Sale->warehouse_name;
+                $item['client_id'] = $Sale->client_id;
+                $item['client_name'] = $Sale->client_name;
+                $item['client_email'] = $Sale->client_email;
+                $item['client_tele'] = $Sale->client_tele;
+                $item['client_code'] = $Sale->client_code;
+                $item['client_adr'] = $Sale->client_adr;
+                $item['GrandTotal'] = $Sale->GrandTotal;
+                $item['paid_amount'] = $Sale->paid_amount;
+                $item['due'] = $Sale->due;
+                $item['payment_status'] = $Sale->payment_status;
+                $item['salereturn_id'] = $Sale->salereturn_id;
+                $item['sale_has_return'] = $Sale->sale_has_return;
 
+            }else{
+                $item['id'] = $Sale->id;
+                $item['date'] = $Sale->date_paid;
+                $item['Ref'] = 'Ref';
+                $item['created_by'] = $Sale->customer_id;
+                $item['statut'] = $Sale->status;
+                $item['shipping_status'] =  $Sale->shipping->state;
+                $item['discount'] = $Sale->discount_total;
+                $item['shipping'] = 'shipping';
+                $item['warehouse_name'] = 'warehouse';
+                $item['client_id'] = 'clientid';
+                $item['client_name'] = 'clientname';
+                $item['client_email'] = 'clientemail';
+                $item['client_tele'] = 'clientphone';
+                $item['client_code'] = 'clientcode';
+                $item['client_adr'] = 'clientadresse';
+                $item['GrandTotal'] = number_format($Sale->total, 2, '.', '');
+                $item['paid_amount'] = number_format($Sale->total, 2, '.', '');
+                $item['due'] = number_format($Sale->total - $Sale->total, 2, '.', '');
+                $item['payment_status'] = $Sale->status;
+                $item['sale_has_return'] = 'no';
+            }
             $data[] = $item;
         }
-        
+
         $stripe_key = config('app.STRIPE_KEY');
         $customers = client::where('deleted_at', '=', null)->get(['id', 'name']);
 
@@ -282,6 +287,121 @@ class SalesController extends BaseController
             'warehouses' => $warehouses,
         ]);
     }
+
+    // public function index(request $request)
+    // {
+    //     $this->authorizeForUser($request->user('api'), 'view', Sale::class);
+    //     $role = Auth::user()->roles()->first();
+    //     $view_records = Role::findOrFail($role->id)->inRole('record_view');
+    //     // How many items do you want to display.
+    //     $perPage = $request->limit;
+
+    //     $pageStart = \Request::get('page', 1);
+    //     // Start displaying items from this number;
+    //     $offSet = ($pageStart * $perPage) - $perPage;
+    //     $order = $request->SortField;
+    //     $dir = $request->SortType;
+    //     $helpers = new helpers();
+    //     // Filter fields With Params to retrieve
+    //     $param = array(
+    //         0 => 'like',
+    //         1 => 'like',
+    //         2 => '=',
+    //         3 => 'like',
+    //         4 => '=',
+    //         5 => '=',
+    //         6 => 'like',
+    //     );
+    //     $columns = array(
+    //         0 => 'Ref',
+    //         1 => 'statut',
+    //         2 => 'client_id',
+    //         3 => 'payment_statut',
+    //         4 => 'warehouse_id',
+    //         5 => 'date',
+    //         6 => 'shipping_status',
+    //     );
+    //     $data = array();
+
+    //     // Check If User Has Permission View  All Records
+    //     $Sales = $this->sale_list_woo();
+
+    //     //Multiple Filter
+    //     // $Filtred = $helpers->filter($Sales, $columns, $param, $request)
+    //     // Search With Multiple Param
+    //         // ->where(function ($query) use ($request) {
+    //         //     return $query->when($request->filled('search'), function ($query) use ($request) {
+    //         //         return $query->where('Ref', 'LIKE', "%{$request->search}%")
+    //         //             ->orWhere('statut', 'LIKE', "%{$request->search}%")
+    //         //             ->orWhere('GrandTotal', $request->search)
+    //         //             ->orWhere('payment_statut', 'like', "%{$request->search}%")
+    //         //             ->orWhere('shipping_status', 'like', "%{$request->search}%")
+    //         //             ->orWhere(function ($query) use ($request) {
+    //         //                 return $query->whereHas('client', function ($q) use ($request) {
+    //         //                     $q->where('name', 'LIKE', "%{$request->search}%");
+    //         //                 });
+    //         //             })
+    //         //             ->orWhere(function ($query) use ($request) {
+    //         //                 return $query->whereHas('warehouse', function ($q) use ($request) {
+    //         //                     $q->where('name', 'LIKE', "%{$request->search}%");
+    //         //                 });
+    //         //             });
+    //         //     });
+    //         // });
+
+    //     $Filtred = $Sales;
+    //     $totalRows = count($Filtred);
+    //     if($perPage == "-1"){
+    //         $perPage = $totalRows;
+    //     }
+    //     $Sales = array_slice($Filtred,$offSet,$perPage);
+        
+    //     foreach ($Sales as $Sale) {
+            
+    //         $item['id'] = $Sale->id;
+    //         $item['date'] = $Sale->date_paid;
+    //         $item['Ref'] = 'Ref';
+    //         $item['created_by'] = $Sale->customer_id;
+    //         $item['statut'] = $Sale->status;
+    //         $item['shipping_status'] =  $Sale->shipping->state;
+    //         $item['discount'] = $Sale->discount_total;
+    //         $item['shipping'] = 'shipping';
+    //         $item['warehouse_name'] = 'warehouse';
+    //         $item['client_id'] = 'clientid';
+    //         $item['client_name'] = 'clientname';
+    //         $item['client_email'] = 'clientemail';
+    //         $item['client_tele'] = 'clientphone';
+    //         $item['client_code'] = 'clientcode';
+    //         $item['client_adr'] = 'clientadresse';
+    //         $item['GrandTotal'] = number_format($Sale->total, 2, '.', '');
+    //         $item['paid_amount'] = number_format($Sale->total, 2, '.', '');
+    //         $item['due'] = number_format($Sale->total - $Sale->total, 2, '.', '');
+    //         $item['payment_status'] = $Sale->status;
+    //         $item['sale_has_return'] = 'no';
+
+    //         $data[] = $item;
+    //     }
+        
+    //     $stripe_key = config('app.STRIPE_KEY');
+    //     $customers = client::where('deleted_at', '=', null)->get(['id', 'name']);
+
+    //    //get warehouses assigned to user
+    //    $user_auth = auth()->user();
+    //    if($user_auth->is_all_warehouses){
+    //        $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+    //    }else{
+    //        $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+    //        $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+    //    }
+
+    //     return response()->json([
+    //         'stripe_key' => $stripe_key,
+    //         'totalRows' => $totalRows,
+    //         'sales' => $data,
+    //         'customers' => $customers,
+    //         'warehouses' => $warehouses,
+    //     ]);
+    // }
     public function sale_list_woo(){
         $page = 1;
         $sales = [];
@@ -1397,6 +1517,9 @@ class SalesController extends BaseController
       public function edit(Request $request, $id)
       {
         if (SaleReturn::where('sale_id', $id)->where('deleted_at', '=', null)->exists()) {
+            //if the sale is from woo
+            //get woo values from woo sale list
+
             return response()->json(['success' => false , 'Return exist for the Transaction' => false], 403);
         }else{
           $this->authorizeForUser($request->user('api'), 'update', Sale::class);
@@ -1404,143 +1527,144 @@ class SalesController extends BaseController
           $view_records = Role::findOrFail($role->id)->inRole('record_view');
           $Sale_data = Sale::with('details.product.unitSale')
               ->where('deleted_at', '=', null)
-              ->findOrFail($id);
-          $details = array();
-          // Check If User Has Permission view All Records
-          if (!$view_records) {
-              // Check If User->id === sale->id
-              $this->authorizeForUser($request->user('api'), 'check_record', $Sale_data);
-          }
-  
-          if ($Sale_data->client_id) {
-              if (Client::where('id', $Sale_data->client_id)
-                  ->where('deleted_at', '=', null)
-                  ->first()) {
-                  $sale['client_id'] = $Sale_data->client_id;
-              } else {
-                  $sale['client_id'] = '';
-              }
-          } else {
-              $sale['client_id'] = '';
-          }
-  
-          if ($Sale_data->warehouse_id) {
-              if (Warehouse::where('id', $Sale_data->warehouse_id)
-                  ->where('deleted_at', '=', null)
-                  ->first()) {
-                  $sale['warehouse_id'] = $Sale_data->warehouse_id;
-              } else {
-                  $sale['warehouse_id'] = '';
-              }
-          } else {
-              $sale['warehouse_id'] = '';
-          }
-  
-          $sale['date'] = $Sale_data->date;
-          $sale['tax_rate'] = $Sale_data->tax_rate;
-          $sale['TaxNet'] = $Sale_data->TaxNet;
-          $sale['discount'] = $Sale_data->discount;
-          $sale['shipping'] = $Sale_data->shipping;
-          $sale['statut'] = $Sale_data->statut;
-          $sale['notes'] = $Sale_data->notes;
-  
-          $detail_id = 0;
-          foreach ($Sale_data['details'] as $detail) {
-
-                //check if detail has sale_unit_id Or Null
-                if($detail->sale_unit_id !== null){
-                    $unit = Unit::where('id', $detail->sale_unit_id)->first();
-                    $data['no_unit'] = 1;
-                }else{
-                    $product_unit_sale_id = Product::with('unitSale')
-                    ->where('id', $detail->product_id)
-                    ->first();
-                    $unit = Unit::where('id', $product_unit_sale_id['unitSale']->id)->first();
-                    $data['no_unit'] = 0;
+              ->find($id);
+          if($Sale_data){
+            $details = array();
+            // Check If User Has Permission view All Records
+            if (!$view_records) {
+                // Check If User->id === sale->id
+                $this->authorizeForUser($request->user('api'), 'check_record', $Sale_data);
+            }
+    
+            if ($Sale_data->client_id) {
+                if (Client::where('id', $Sale_data->client_id)
+                    ->where('deleted_at', '=', null)
+                    ->first()) {
+                    $sale['client_id'] = $Sale_data->client_id;
+                } else {
+                    $sale['client_id'] = '';
                 }
-        
-              if ($detail->product_variant_id) {
-                  $item_product = product_warehouse::where('product_id', $detail->product_id)
-                      ->where('deleted_at', '=', null)
-                      ->where('product_variant_id', $detail->product_variant_id)
-                      ->where('warehouse_id', $Sale_data->warehouse_id)
-                      ->first();
-  
-                  $productsVariants = ProductVariant::where('product_id', $detail->product_id)
-                      ->where('id', $detail->product_variant_id)->first();
-  
-                  $item_product ? $data['del'] = 0 : $data['del'] = 1;
-                  $data['product_variant_id'] = $detail->product_variant_id;
-                  $data['code'] = $productsVariants->name . '-' . $detail['product']['code'];
-                 
-                  if ($unit && $unit->operator == '/') {
-                      $data['stock'] = $item_product ? $item_product->qte * $unit->operator_value : 0;
-                  } else if ($unit && $unit->operator == '*') {
-                      $data['stock'] = $item_product ? $item_product->qte / $unit->operator_value : 0;
-                  } else {
-                      $data['stock'] = 0;
-                  }
-  
-              } else {
-                  $item_product = product_warehouse::where('product_id', $detail->product_id)
-                      ->where('deleted_at', '=', null)->where('warehouse_id', $Sale_data->warehouse_id)
-                      ->where('product_variant_id', '=', null)->first();
-  
-                  $item_product ? $data['del'] = 0 : $data['del'] = 1;
-                  $data['product_variant_id'] = null;
-                  $data['code'] = $detail['product']['code'];
+            } else {
+                $sale['client_id'] = '';
+            }
+    
+            if ($Sale_data->warehouse_id) {
+                if (Warehouse::where('id', $Sale_data->warehouse_id)
+                    ->where('deleted_at', '=', null)
+                    ->first()) {
+                    $sale['warehouse_id'] = $Sale_data->warehouse_id;
+                } else {
+                    $sale['warehouse_id'] = '';
+                }
+            } else {
+                $sale['warehouse_id'] = '';
+            }
+    
+            $sale['date'] = $Sale_data->date;
+            $sale['tax_rate'] = $Sale_data->tax_rate;
+            $sale['TaxNet'] = $Sale_data->TaxNet;
+            $sale['discount'] = $Sale_data->discount;
+            $sale['shipping'] = $Sale_data->shipping;
+            $sale['statut'] = $Sale_data->statut;
+            $sale['notes'] = $Sale_data->notes;
+    
+            $detail_id = 0;
+            foreach ($Sale_data['details'] as $detail) {
 
-                  if ($unit && $unit->operator == '/') {
-                      $data['stock'] = $item_product ? $item_product->qte * $unit->operator_value : 0;
+                    //check if detail has sale_unit_id Or Null
+                    if($detail->sale_unit_id !== null){
+                        $unit = Unit::where('id', $detail->sale_unit_id)->first();
+                        $data['no_unit'] = 1;
+                    }else{
+                        $product_unit_sale_id = Product::with('unitSale')
+                        ->where('id', $detail->product_id)
+                        ->first();
+                        $unit = Unit::where('id', $product_unit_sale_id['unitSale']->id)->first();
+                        $data['no_unit'] = 0;
+                    }
+            
+                if ($detail->product_variant_id) {
+                    $item_product = product_warehouse::where('product_id', $detail->product_id)
+                        ->where('deleted_at', '=', null)
+                        ->where('product_variant_id', $detail->product_variant_id)
+                        ->where('warehouse_id', $Sale_data->warehouse_id)
+                        ->first();
+    
+                    $productsVariants = ProductVariant::where('product_id', $detail->product_id)
+                        ->where('id', $detail->product_variant_id)->first();
+    
+                    $item_product ? $data['del'] = 0 : $data['del'] = 1;
+                    $data['product_variant_id'] = $detail->product_variant_id;
+                    $data['code'] = $productsVariants->name . '-' . $detail['product']['code'];
+                    
+                    if ($unit && $unit->operator == '/') {
+                        $data['stock'] = $item_product ? $item_product->qte * $unit->operator_value : 0;
                     } else if ($unit && $unit->operator == '*') {
-                      $data['stock'] = $item_product ? $item_product->qte / $unit->operator_value : 0;
-                  } else {
-                      $data['stock'] = 0;
-                  }
-  
-                }
-                
-                $data['id'] = $detail->id;
-                $data['detail_id'] = $detail_id += 1;
-                $data['product_id'] = $detail->product_id;
-                $data['total'] = $detail->total;
-                $data['name'] = $detail['product']['name'];
-                $data['quantity'] = $detail->quantity;
-                $data['qte_copy'] = $detail->quantity;
-                $data['etat'] = 'current';
-                $data['unitSale'] = $unit->ShortName;
-                $data['sale_unit_id'] = $unit->id;
-                $data['is_imei'] = $detail['product']['is_imei'];
-                $data['imei_number'] = $detail->imei_number;
-
-                if ($detail->discount_method == '2') {
-                    $data['DiscountNet'] = $detail->discount;
+                        $data['stock'] = $item_product ? $item_product->qte / $unit->operator_value : 0;
+                    } else {
+                        $data['stock'] = 0;
+                    }
+    
                 } else {
-                    $data['DiscountNet'] = $detail->price * $detail->discount / 100;
-                }
+                    $item_product = product_warehouse::where('product_id', $detail->product_id)
+                        ->where('deleted_at', '=', null)->where('warehouse_id', $Sale_data->warehouse_id)
+                        ->where('product_variant_id', '=', null)->first();
+    
+                    $item_product ? $data['del'] = 0 : $data['del'] = 1;
+                    $data['product_variant_id'] = null;
+                    $data['code'] = $detail['product']['code'];
 
-                $tax_price = $detail->TaxNet * (($detail->price - $data['DiscountNet']) / 100);
-                $data['Unit_price'] = $detail->price;
-                
-                $data['tax_percent'] = $detail->TaxNet;
-                $data['tax_method'] = $detail->tax_method;
-                $data['discount'] = $detail->discount;
-                $data['discount_Method'] = $detail->discount_method;
+                    if ($unit && $unit->operator == '/') {
+                        $data['stock'] = $item_product ? $item_product->qte * $unit->operator_value : 0;
+                        } else if ($unit && $unit->operator == '*') {
+                        $data['stock'] = $item_product ? $item_product->qte / $unit->operator_value : 0;
+                    } else {
+                        $data['stock'] = 0;
+                    }
+    
+                    }
+                    
+                    $data['id'] = $detail->id;
+                    $data['detail_id'] = $detail_id += 1;
+                    $data['product_id'] = $detail->product_id;
+                    $data['total'] = $detail->total;
+                    $data['name'] = $detail['product']['name'];
+                    $data['quantity'] = $detail->quantity;
+                    $data['qte_copy'] = $detail->quantity;
+                    $data['etat'] = 'current';
+                    $data['unitSale'] = $unit->ShortName;
+                    $data['sale_unit_id'] = $unit->id;
+                    $data['is_imei'] = $detail['product']['is_imei'];
+                    $data['imei_number'] = $detail->imei_number;
 
-                if ($detail->tax_method == '1') {
-                    $data['Net_price'] = $detail->price - $data['DiscountNet'];
-                    $data['taxe'] = $tax_price;
-                    $data['subtotal'] = ($data['Net_price'] * $data['quantity']) + ($tax_price * $data['quantity']);
-                } else {
-                    $data['Net_price'] = ($detail->price - $data['DiscountNet']) / (($detail->TaxNet / 100) + 1);
-                    $data['taxe'] = $detail->price - $data['Net_price'] - $data['DiscountNet'];
-                    $data['subtotal'] = ($data['Net_price'] * $data['quantity']) + ($tax_price * $data['quantity']);
-                }
+                    if ($detail->discount_method == '2') {
+                        $data['DiscountNet'] = $detail->discount;
+                    } else {
+                        $data['DiscountNet'] = $detail->price * $detail->discount / 100;
+                    }
 
-               $details[] = $data;
-          }
-        
-         //get warehouses assigned to user
+                    $tax_price = $detail->TaxNet * (($detail->price - $data['DiscountNet']) / 100);
+                    $data['Unit_price'] = $detail->price;
+                    
+                    $data['tax_percent'] = $detail->TaxNet;
+                    $data['tax_method'] = $detail->tax_method;
+                    $data['discount'] = $detail->discount;
+                    $data['discount_Method'] = $detail->discount_method;
+
+                    if ($detail->tax_method == '1') {
+                        $data['Net_price'] = $detail->price - $data['DiscountNet'];
+                        $data['taxe'] = $tax_price;
+                        $data['subtotal'] = ($data['Net_price'] * $data['quantity']) + ($tax_price * $data['quantity']);
+                    } else {
+                        $data['Net_price'] = ($detail->price - $data['DiscountNet']) / (($detail->TaxNet / 100) + 1);
+                        $data['taxe'] = $detail->price - $data['Net_price'] - $data['DiscountNet'];
+                        $data['subtotal'] = ($data['Net_price'] * $data['quantity']) + ($tax_price * $data['quantity']);
+                    }
+
+                $details[] = $data;
+            }
+
+            //get warehouses assigned to user
         $user_auth = auth()->user();
         if($user_auth->is_all_warehouses){
             $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
@@ -1550,17 +1674,184 @@ class SalesController extends BaseController
         }
 
           $clients = Client::where('deleted_at', '=', null)->get(['id', 'name']);
-  
           return response()->json([
-              'details' => $details,
-              'sale' => $sale,
-              'clients' => $clients,
-              'warehouses' => $warehouses,
-          ]);
+            'details' => $details,
+            'sale' => $sale,
+            'clients' => $clients,
+            'warehouses' => $warehouses,
+        ]);
+
+        }else{
+            $Sale_data = $this->show_woo($id);
+            $details = array();
+            // Check If User Has Permission view All Records
+            if (!$view_records) {
+                // Check If User->id === sale->id
+                $this->authorizeForUser($request->user('api'), 'check_record', $Sale_data);
+            }
+    
+            if ($Sale_data->customer_id) {
+                if ($this->show_woo_customer($Sale_data->customer_id)) {
+                    $sale['client_id'] = $Sale_data->customer_id;
+                } else {
+                    $sale['client_id'] = '';
+                }
+            } else {
+                $sale['client_id'] = '';
+            }
+    
+            // if ($Sale_data->warehouse_id) {
+            //     if (Warehouse::where('id', $Sale_data->warehouse_id)
+            //         ->where('deleted_at', '=', null)
+            //         ->first()) {
+            //         $sale['warehouse_id'] = $Sale_data->warehouse_id;
+            //     } else {
+            //         $sale['warehouse_id'] = '';
+            //     }
+            // } else {
+            //     $sale['warehouse_id'] = '';
+            // }
+            $sale['warehouse_id'] = '';
+
+    
+            $sale['date'] = $Sale_data->date_paid;
+            $sale['tax_rate'] = $Sale_data->total_tax;
+            $sale['TaxNet'] = $Sale_data->total_tax;
+            $sale['discount'] = $Sale_data->discount_total;
+            $sale['shipping'] = $Sale_data->shipping_total;
+            $sale['statut'] = $Sale_data->status;
+            $sale['notes'] = $Sale_data->customer_note;
+    
+            $detail_id = 0;
+            // foreach ($Sale_data['details'] as $detail) {
+
+            //         //check if detail has sale_unit_id Or Null
+            //         if($detail->sale_unit_id !== null){
+            //             $unit = Unit::where('id', $detail->sale_unit_id)->first();
+            //             $data['no_unit'] = 1;
+            //         }else{
+            //             $product_unit_sale_id = Product::with('unitSale')
+            //             ->where('id', $detail->product_id)
+            //             ->first();
+            //             $unit = Unit::where('id', $product_unit_sale_id['unitSale']->id)->first();
+            //             $data['no_unit'] = 0;
+            //         }
+            
+            //     if ($detail->product_variant_id) {
+            //         $item_product = product_warehouse::where('product_id', $detail->product_id)
+            //             ->where('deleted_at', '=', null)
+            //             ->where('product_variant_id', $detail->product_variant_id)
+            //             ->where('warehouse_id', $Sale_data->warehouse_id)
+            //             ->first();
+    
+            //         $productsVariants = ProductVariant::where('product_id', $detail->product_id)
+            //             ->where('id', $detail->product_variant_id)->first();
+    
+            //         $item_product ? $data['del'] = 0 : $data['del'] = 1;
+            //         $data['product_variant_id'] = $detail->product_variant_id;
+            //         $data['code'] = $productsVariants->name . '-' . $detail['product']['code'];
+                    
+            //         if ($unit && $unit->operator == '/') {
+            //             $data['stock'] = $item_product ? $item_product->qte * $unit->operator_value : 0;
+            //         } else if ($unit && $unit->operator == '*') {
+            //             $data['stock'] = $item_product ? $item_product->qte / $unit->operator_value : 0;
+            //         } else {
+            //             $data['stock'] = 0;
+            //         }
+    
+            //     } else {
+            //         $item_product = product_warehouse::where('product_id', $detail->product_id)
+            //             ->where('deleted_at', '=', null)->where('warehouse_id', $Sale_data->warehouse_id)
+            //             ->where('product_variant_id', '=', null)->first();
+    
+            //         $item_product ? $data['del'] = 0 : $data['del'] = 1;
+            //         $data['product_variant_id'] = null;
+            //         $data['code'] = $detail['product']['code'];
+
+            //         if ($unit && $unit->operator == '/') {
+            //             $data['stock'] = $item_product ? $item_product->qte * $unit->operator_value : 0;
+            //             } else if ($unit && $unit->operator == '*') {
+            //             $data['stock'] = $item_product ? $item_product->qte / $unit->operator_value : 0;
+            //         } else {
+            //             $data['stock'] = 0;
+            //         }
+    
+            //         }
+                    
+            //         $data['id'] = $detail->id;
+            //         $data['detail_id'] = $detail_id += 1;
+            //         $data['product_id'] = $detail->product_id;
+            //         $data['total'] = $detail->total;
+            //         $data['name'] = $detail['product']['name'];
+            //         $data['quantity'] = $detail->quantity;
+            //         $data['qte_copy'] = $detail->quantity;
+            //         $data['etat'] = 'current';
+            //         $data['unitSale'] = $unit->ShortName;
+            //         $data['sale_unit_id'] = $unit->id;
+            //         $data['is_imei'] = $detail['product']['is_imei'];
+            //         $data['imei_number'] = $detail->imei_number;
+
+            //         if ($detail->discount_method == '2') {
+            //             $data['DiscountNet'] = $detail->discount;
+            //         } else {
+            //             $data['DiscountNet'] = $detail->price * $detail->discount / 100;
+            //         }
+
+            //         $tax_price = $detail->TaxNet * (($detail->price - $data['DiscountNet']) / 100);
+            //         $data['Unit_price'] = $detail->price;
+                    
+            //         $data['tax_percent'] = $detail->TaxNet;
+            //         $data['tax_method'] = $detail->tax_method;
+            //         $data['discount'] = $detail->discount;
+            //         $data['discount_Method'] = $detail->discount_method;
+
+            //         if ($detail->tax_method == '1') {
+            //             $data['Net_price'] = $detail->price - $data['DiscountNet'];
+            //             $data['taxe'] = $tax_price;
+            //             $data['subtotal'] = ($data['Net_price'] * $data['quantity']) + ($tax_price * $data['quantity']);
+            //         } else {
+            //             $data['Net_price'] = ($detail->price - $data['DiscountNet']) / (($detail->TaxNet / 100) + 1);
+            //             $data['taxe'] = $detail->price - $data['Net_price'] - $data['DiscountNet'];
+            //             $data['subtotal'] = ($data['Net_price'] * $data['quantity']) + ($tax_price * $data['quantity']);
+            //         }
+
+            //     $details[] = $data;
+            // }
+
+            //get warehouses assigned to user
+        $user_auth = auth()->user();
+        if($user_auth->is_all_warehouses){
+            $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+        }else{
+            $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+            $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        }
+
+          $clients = Client::where('deleted_at', '=', null)->get(['id', 'name']);
+          return response()->json([
+            'details' => $details,
+            'sale' => $sale,
+            'clients' => $clients,
+            'warehouses' => $warehouses,
+        ]);
+        }
+        
+         
+  
+          
         }
   
       }
 
+      public function show_woo($id){
+        $result = WooCommerce::find('orders/'.$id);
+        return $result;
+    }
+
+    public function show_woo_customer($id){
+        $result = WooCommerce::find('customers/'.$id);
+        return $result;
+    }
 
     //------------- SEND SALE TO EMAIL -----------\\
 
