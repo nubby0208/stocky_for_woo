@@ -301,7 +301,7 @@ class ProductsController extends BaseController
                     $product_exist_woo = true;
                     $temp_pos_id = $product->id;
                     $temp_pos_name = $product->name;
-                    $temp_pos_price = $product->price;
+                    $temp_pos_price = $product->regular_price;
                 }else{
                     $product_variants = $this->product_variant_list_woo($product->id);
                     foreach($product_variants as $product_variant){
@@ -309,7 +309,7 @@ class ProductsController extends BaseController
                             $product_exist_woo = true;
                             $temp_pos_id = $product->id;
                             $temp_pos_var_id = $product_variant->id;
-                            $temp_pos_price = $product_variant->price;
+                            $temp_pos_price = $product_variant->regular_price;
                         }
                     }
                 }
