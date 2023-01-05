@@ -210,16 +210,16 @@
 
             <span v-else-if="props.row.shipping_status == 'cancelled'" class="badge badge-outline-danger">{{$t('Cancelled')}}</span>
           </div>
-          <div v-else-if="props.column.field == 'is_pos'">
+          <div v-else-if="props.column.field == 'sold_by'">
             <span
               v-if="props.row.is_pos == true"
-              class="badge badge-outline-success"
-            >{{$t('Yes')}}</span>
-            <span
-              v-else-if="props.row.is_pos == false"
               class="badge badge-outline-primary"
             >{{$t('No')}}</span>
-            <span v-else class="badge badge-outline-warning">{{$t('No')}}</span>
+            <span
+              v-else-if="props.row.is_pos == false"
+              class="badge badge-outline-success"
+            >{{$t('Yes')}}</span>
+            <span v-else class="badge badge-outline-warning">{{$t('Yes')}}</span>
           </div>
            <div v-else-if="props.column.field == 'Ref'">
               <router-link
@@ -958,8 +958,8 @@ export default {
           thClass: "text-left"
         },
         {
-          label: this.$t("Is_POS"),
-          field: "is_pos",
+          label: this.$t("Sold_By"),
+          field: "sold_by",
           tdClass: "text-left",
           thClass: "text-left"
         },
