@@ -332,20 +332,20 @@
                     </div>
                   </b-col>
                   <b-col md="12 mb-5" v-show="product.is_variant">
-                    <div v-for="variant in variants">
-                      <!-- <vue-tags-input
-                        placeholder="+ add"
-                        v-model="variant.tag"
-                        :tags="variant.tags"
-                        class="tag-custom text-15"
-                        @adding-duplicate="showNotifDuplicate()"
-                        @tags-changed="newTags => variant.tags = newTags"
-                      /> -->
+                    <vue-tags-input
+                      placeholder="+ add"
+                      v-model="tag"
+                      :tags="variants"
+                      class="tag-custom text-15"
+                      @adding-duplicate="showNotifDuplicate()"
+                      @tags-changed="newTags => variants = newTags"
+                    />
+                    <!-- <div v-for="variant in variants">
                       <div>
                         <h4>{{ variant.title }}</h4>
                         <h6>{{ variant.text }}</h6>
                       </div>
-                    </div>
+                    </div> -->
                   </b-col>
 
                    <!-- Product_Has_Imei_Serial_number -->
