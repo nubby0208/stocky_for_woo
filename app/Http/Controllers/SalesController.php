@@ -244,7 +244,7 @@ class SalesController extends BaseController
                 $item['is_pos'] = true;
             }else{
                 $item['id'] = $Sale->id;
-                $item['date'] = $Sale->date_created;
+                $item['date'] = substr($Sale->date_created,0,10);
                 $item['Ref'] = 'Ref';
                 $item['created_by'] = $Sale->customer_id;
                 $item['statut'] = $Sale->status;
