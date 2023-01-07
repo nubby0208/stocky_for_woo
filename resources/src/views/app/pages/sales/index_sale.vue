@@ -63,7 +63,7 @@
         </div>
 
         <template slot="table-row" slot-scope="props">
-          <span v-if="props.column.field == 'actions' && props.row.is_pos">
+          <span v-if="props.column.field == 'actions'">
             <div>
               <b-dropdown
                 id="dropdown-right"
@@ -88,7 +88,7 @@
 
                  <b-dropdown-item 
                   title="Edit"
-                  v-if="currentUserPermissions.includes('Sales_edit') && props.row.sale_has_return == 'no'"
+                  v-if="currentUserPermissions.includes('Sales_edit') && props.row.sale_has_return == 'no' && props.row.is_pos"
                   :to="'/app/sales/edit/'+props.row.id"
                 >
                   <i class="nav-icon i-Pen-2 font-weight-bold mr-2"></i>
@@ -114,7 +114,7 @@
                 </b-dropdown-item>
 
                 <b-dropdown-item
-                  v-if="currentUserPermissions.includes('payment_sales_view')"
+                  v-if="currentUserPermissions.includes('payment_sales_view') && props.row.is_pos"
                   @click="Show_Payments(props.row.id , props.row)"
                 >
                   <i class="nav-icon i-Money-Bag font-weight-bold mr-2"></i>
@@ -122,7 +122,7 @@
                 </b-dropdown-item>
 
                 <b-dropdown-item
-                  v-if="currentUserPermissions.includes('payment_sales_add')"
+                  v-if="currentUserPermissions.includes('payment_sales_add') && props.row.is_pos"
                   @click="New_Payment(props.row)"
                 >
                   <i class="nav-icon i-Add font-weight-bold mr-2"></i>
@@ -130,7 +130,7 @@
                 </b-dropdown-item>
 
                 <b-dropdown-item
-                  v-if="currentUserPermissions.includes('shipment')"
+                  v-if="currentUserPermissions.includes('shipment') && props.row.is_pos"
                   @click="Edit_Shipment(props.row.id)"
                 >
                   <i class="nav-icon i-Pen-2 font-weight-bold mr-2"></i>
@@ -138,7 +138,9 @@
                 </b-dropdown-item>
 
 
-                <b-dropdown-item title="Invoice" @click="Invoice_POS(props.row.id)">
+                <b-dropdown-item 
+                v-if="props.row.is_pos"
+                title="Invoice" @click="Invoice_POS(props.row.id)">
                   <i class="nav-icon i-File-TXT font-weight-bold mr-2"></i>
                   {{$t('Invoice_POS')}}
                 </b-dropdown-item>
@@ -148,14 +150,16 @@
                   {{$t('DownloadPdf')}}
                 </b-dropdown-item>
 
-                <b-dropdown-item title="Email" @click="Sale_Email(props.row , props.row.id)">
+                <b-dropdown-item
+                v-if="props.row.is_pos"
+                 title="Email" @click="Sale_Email(props.row , props.row.id)">
                   <i class="nav-icon i-Envelope-2 font-weight-bold mr-2"></i>
                   {{$t('EmailSale')}}
                 </b-dropdown-item>
 
                 <b-dropdown-item
                   title="Delete"
-                  v-if="currentUserPermissions.includes('Sales_delete')"
+                  v-if="currentUserPermissions.includes('Sales_delete') && props.row.is_pos"
                   @click="Remove_Sale(props.row.id , props.row.sale_has_return)"
                 >
                   <i class="nav-icon i-Close-Window font-weight-bold mr-2"></i>
@@ -214,11 +218,11 @@
             <span
               v-if="props.row.is_pos == true"
               class="badge badge-outline-primary"
-            >{{$t('No')}}</span>
+            >{{$t('POS')}}</span>
             <span
               v-else-if="props.row.is_pos == false"
               class="badge badge-outline-success"
-            >{{$t('Yes')}}</span>
+            >{{$t('Website')}}</span>
             <span v-else class="badge badge-outline-warning">{{$t('Yes')}}</span>
           </div>
            <div v-else-if="props.column.field == 'Ref'">

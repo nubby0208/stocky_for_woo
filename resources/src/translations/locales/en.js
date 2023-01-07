@@ -834,6 +834,8 @@ export default {
     Customer_Invoice:'Customer Invoice',
     This_Product_Not_For_Selling:'This Product Not For Selling',
     Welcome_to_your_Dashboard:'Welcome to your Dashboard',
+    Website:'Website',
+    POS:'POS',
     Total_Payable:'Total Payable',
     Choose_Sale_Ref:'Choose Sale Ref',
     Please_Select_Sale:'Please Select Sale',
