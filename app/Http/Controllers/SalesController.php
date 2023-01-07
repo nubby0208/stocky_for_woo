@@ -1287,8 +1287,8 @@ class SalesController extends BaseController
         }else{
             $sale_data = $this->sale_woo($id);
 
-            $sale_details['Ref'] = $sale_data->Ref;
-            $sale_details['date'] = substr($Sale->date_created,0,10);
+            $sale_details['Ref'] = 'ref';
+            $sale_details['date'] = substr($sale_data->date_created,0,10);
             $sale_details['note'] = 'note';
             $sale_details['statut'] = $sale_data->status;
             $sale_details['warehouse'] = 'warehouse';
@@ -1315,58 +1315,58 @@ class SalesController extends BaseController
                 $sale_details['sale_has_return'] = 'no';
             }
 
-            foreach ($sale_data->details as $detail) {
+            // foreach ($sale_data->details as $detail) {
 
-                //check if detail has sale_unit_id Or Null
-                if($detail->sale_unit_id !== null){
-                    $unit = Unit::where('id', $detail->sale_unit_id)->first();
-                }else{
-                    $product_unit_sale_id = Product::with('unitSale')
-                    ->where('id', $detail->product_id)
-                    ->first();
-                    $unit = Unit::where('id', $product_unit_sale_id['unitSale']->id)->first();
-                }
+            //     //check if detail has sale_unit_id Or Null
+            //     if($detail->sale_unit_id !== null){
+            //         $unit = Unit::where('id', $detail->sale_unit_id)->first();
+            //     }else{
+            //         $product_unit_sale_id = Product::with('unitSale')
+            //         ->where('id', $detail->product_id)
+            //         ->first();
+            //         $unit = Unit::where('id', $product_unit_sale_id['unitSale']->id)->first();
+            //     }
 
-                if ($detail->product_variant_id) {
+            //     if ($detail->product_variant_id) {
 
-                    $productsVariants = ProductVariant::where('product_id', $detail->product_id)
-                        ->where('id', $detail->product_variant_id)->first();
+            //         $productsVariants = ProductVariant::where('product_id', $detail->product_id)
+            //             ->where('id', $detail->product_variant_id)->first();
 
-                    $data['code'] = $productsVariants->name . '-' . $detail['product']['code'];
+            //         $data['code'] = $productsVariants->name . '-' . $detail['product']['code'];
 
-                } else {
-                    $data['code'] = $detail['product']['code'];
-                }
+            //     } else {
+            //         $data['code'] = $detail['product']['code'];
+            //     }
 
-                $data['quantity'] = $detail->quantity;
-                $data['total'] = $detail->total;
-                $data['name'] = $detail['product']['name'];
-                $data['price'] = $detail->price;
-                $data['unit_sale'] = $unit->ShortName;
+            //     $data['quantity'] = $detail->quantity;
+            //     $data['total'] = $detail->total;
+            //     $data['name'] = $detail['product']['name'];
+            //     $data['price'] = $detail->price;
+            //     $data['unit_sale'] = $unit->ShortName;
 
-                if ($detail->discount_method == '2') {
-                    $data['DiscountNet'] = $detail->discount;
-                } else {
-                    $data['DiscountNet'] = $detail->price * $detail->discount / 100;
-                }
+            //     if ($detail->discount_method == '2') {
+            //         $data['DiscountNet'] = $detail->discount;
+            //     } else {
+            //         $data['DiscountNet'] = $detail->price * $detail->discount / 100;
+            //     }
 
-                $tax_price = $detail->TaxNet * (($detail->price - $data['DiscountNet']) / 100);
-                $data['Unit_price'] = $detail->price;
-                $data['discount'] = $detail->discount;
+            //     $tax_price = $detail->TaxNet * (($detail->price - $data['DiscountNet']) / 100);
+            //     $data['Unit_price'] = $detail->price;
+            //     $data['discount'] = $detail->discount;
 
-                if ($detail->tax_method == '1') {
-                    $data['Net_price'] = $detail->price - $data['DiscountNet'];
-                    $data['taxe'] = $tax_price;
-                } else {
-                    $data['Net_price'] = ($detail->price - $data['DiscountNet']) / (($detail->TaxNet / 100) + 1);
-                    $data['taxe'] = $detail->price - $data['Net_price'] - $data['DiscountNet'];
-                }
+            //     if ($detail->tax_method == '1') {
+            //         $data['Net_price'] = $detail->price - $data['DiscountNet'];
+            //         $data['taxe'] = $tax_price;
+            //     } else {
+            //         $data['Net_price'] = ($detail->price - $data['DiscountNet']) / (($detail->TaxNet / 100) + 1);
+            //         $data['taxe'] = $detail->price - $data['Net_price'] - $data['DiscountNet'];
+            //     }
 
-                $data['is_imei'] = $detail['product']['is_imei'];
-                $data['imei_number'] = $detail->imei_number;
+            //     $data['is_imei'] = $detail['product']['is_imei'];
+            //     $data['imei_number'] = $detail->imei_number;
 
-                $details[] = $data;
-            }
+            //     $details[] = $data;
+            // }
         }
 
         $company = Setting::where('deleted_at', '=', null)->first();
@@ -1514,76 +1514,156 @@ class SalesController extends BaseController
         $helpers = new helpers();
         $sale_data = Sale::with('details.product.unitSale')
             ->where('deleted_at', '=', null)
-            ->findOrFail($id);
+            ->find($id);
 
-        $sale['client_name'] = $sale_data['client']->name;
-        $sale['client_phone'] = $sale_data['client']->phone;
-        $sale['client_adr'] = $sale_data['client']->adresse;
-        $sale['client_email'] = $sale_data['client']->email;
-        $sale['client_tax'] = $sale_data['client']->tax_number;
-        $sale['TaxNet'] = number_format($sale_data->TaxNet, 2, '.', '');
-        $sale['discount'] = number_format($sale_data->discount, 2, '.', '');
-        $sale['shipping'] = number_format($sale_data->shipping, 2, '.', '');
-        $sale['statut'] = $sale_data->statut;
-        $sale['Ref'] = $sale_data->Ref;
-        $sale['date'] = $sale_data->date;
-        $sale['GrandTotal'] = number_format($sale_data->GrandTotal, 2, '.', '');
-        $sale['paid_amount'] = number_format($sale_data->paid_amount, 2, '.', '');
-        $sale['due'] = number_format($sale['GrandTotal'] - $sale['paid_amount'], 2, '.', '');
-        $sale['payment_status'] = $sale_data->payment_statut;
+        if($sale_data){
+            
+            $sale['client_name'] = $sale_data['client']->name;
+            $sale['client_phone'] = $sale_data['client']->phone;
+            $sale['client_adr'] = $sale_data['client']->adresse;
+            $sale['client_email'] = $sale_data['client']->email;
+            $sale['client_tax'] = $sale_data['client']->tax_number;
+            $sale['TaxNet'] = number_format($sale_data->TaxNet, 2, '.', '');
+            $sale['discount'] = number_format($sale_data->discount, 2, '.', '');
+            $sale['shipping'] = number_format($sale_data->shipping, 2, '.', '');
+            $sale['statut'] = $sale_data->statut;
+            $sale['Ref'] = $sale_data->Ref;
+            $sale['date'] = $sale_data->date;
+            $sale['GrandTotal'] = number_format($sale_data->GrandTotal, 2, '.', '');
+            $sale['paid_amount'] = number_format($sale_data->paid_amount, 2, '.', '');
+            $sale['due'] = number_format($sale['GrandTotal'] - $sale['paid_amount'], 2, '.', '');
+            $sale['payment_status'] = $sale_data->payment_statut;
 
-        $detail_id = 0;
-        foreach ($sale_data['details'] as $detail) {
+            $detail_id = 0;
+            foreach ($sale_data['details'] as $detail) {
 
-            //check if detail has sale_unit_id Or Null
-            if($detail->sale_unit_id !== null){
-                $unit = Unit::where('id', $detail->sale_unit_id)->first();
-            }else{
-                $product_unit_sale_id = Product::with('unitSale')
-                ->where('id', $detail->product_id)
-                ->first();
-                $unit = Unit::where('id', $product_unit_sale_id['unitSale']->id)->first();
+                //check if detail has sale_unit_id Or Null
+                if($detail->sale_unit_id !== null){
+                    $unit = Unit::where('id', $detail->sale_unit_id)->first();
+                }else{
+                    $product_unit_sale_id = Product::with('unitSale')
+                    ->where('id', $detail->product_id)
+                    ->first();
+                    $unit = Unit::where('id', $product_unit_sale_id['unitSale']->id)->first();
+                }
+
+                if ($detail->product_variant_id) {
+
+                    $productsVariants = ProductVariant::where('product_id', $detail->product_id)
+                        ->where('id', $detail->product_variant_id)->first();
+
+                    $data['code'] = $productsVariants->name . '-' . $detail['product']['code'];
+                } else {
+                    $data['code'] = $detail['product']['code'];
+                }
+
+                    $data['detail_id'] = $detail_id += 1;
+                    $data['quantity'] = number_format($detail->quantity, 2, '.', '');
+                    $data['total'] = number_format($detail->total, 2, '.', '');
+                    $data['name'] = $detail['product']['name'];
+                    $data['unitSale'] = $unit->ShortName;
+                    $data['price'] = number_format($detail->price, 2, '.', '');
+
+                if ($detail->discount_method == '2') {
+                    $data['DiscountNet'] = number_format($detail->discount, 2, '.', '');
+                } else {
+                    $data['DiscountNet'] = number_format($detail->price * $detail->discount / 100, 2, '.', '');
+                }
+
+                $tax_price = $detail->TaxNet * (($detail->price - $data['DiscountNet']) / 100);
+                $data['Unit_price'] = number_format($detail->price, 2, '.', '');
+                $data['discount'] = number_format($detail->discount, 2, '.', '');
+
+                if ($detail->tax_method == '1') {
+                    $data['Net_price'] = $detail->price - $data['DiscountNet'];
+                    $data['taxe'] = number_format($tax_price, 2, '.', '');
+                } else {
+                    $data['Net_price'] = ($detail->price - $data['DiscountNet']) / (($detail->TaxNet / 100) + 1);
+                    $data['taxe'] = number_format($detail->price - $data['Net_price'] - $data['DiscountNet'], 2, '.', '');
+                }
+
+                $data['is_imei'] = $detail['product']['is_imei'];
+                $data['imei_number'] = $detail->imei_number;
+
+                $details[] = $data;
             }
+        }else{
+            $sale_data = $this->sale_woo($id);
 
-            if ($detail->product_variant_id) {
+            $sale['Ref'] = 'ref';
+            $sale['date'] = substr($sale_data->date_created,0,10);
+            $sale['note'] = 'note';
+            $sale['statut'] = $sale_data->status;
+            $sale['warehouse'] = 'warehouse';
+            $sale['discount'] = (int)$sale_data->discount_total;
+            $sale['shipping'] = 0;
+            $sale['tax_rate'] = (int)$sale_data->total_tax;
+            $sale['TaxNet'] = (int)$sale_data->total_tax;
+            $clientname = $sale_data->billing->first_name . ' ' . $sale_data->billing->last_name;
+            $sale['client_name'] = $clientname;
+            $sale['client_phone'] = $sale_data->billing->phone;
+            $sale['client_adr'] = $sale_data->billing->address_1;
+            $sale['client_email'] = $sale_data->billing->email;
+            $sale['client_tax'] = '';
+            $sale['GrandTotal'] = number_format($sale_data->total, 2, '.', '');
+            $sale['paid_amount'] = number_format($sale_data->total, 2, '.', '');
+            $sale['due'] = number_format($sale['GrandTotal'] - $sale['paid_amount'], 2, '.', '');
+            $sale['payment_status'] = $sale_data->status;
 
-                $productsVariants = ProductVariant::where('product_id', $detail->product_id)
-                    ->where('id', $detail->product_variant_id)->first();
+            $detail_id = 0;
 
-                $data['code'] = $productsVariants->name . '-' . $detail['product']['code'];
-            } else {
-                $data['code'] = $detail['product']['code'];
-            }
+            // foreach ($sale_data->details as $detail) {
 
-                $data['detail_id'] = $detail_id += 1;
-                $data['quantity'] = number_format($detail->quantity, 2, '.', '');
-                $data['total'] = number_format($detail->total, 2, '.', '');
-                $data['name'] = $detail['product']['name'];
-                $data['unitSale'] = $unit->ShortName;
-                $data['price'] = number_format($detail->price, 2, '.', '');
+            //     //check if detail has sale_unit_id Or Null
+            //     if($detail->sale_unit_id !== null){
+            //         $unit = Unit::where('id', $detail->sale_unit_id)->first();
+            //     }else{
+            //         $product_unit_sale_id = Product::with('unitSale')
+            //         ->where('id', $detail->product_id)
+            //         ->first();
+            //         $unit = Unit::where('id', $product_unit_sale_id['unitSale']->id)->first();
+            //     }
 
-            if ($detail->discount_method == '2') {
-                $data['DiscountNet'] = number_format($detail->discount, 2, '.', '');
-            } else {
-                $data['DiscountNet'] = number_format($detail->price * $detail->discount / 100, 2, '.', '');
-            }
+            //     if ($detail->product_variant_id) {
 
-            $tax_price = $detail->TaxNet * (($detail->price - $data['DiscountNet']) / 100);
-            $data['Unit_price'] = number_format($detail->price, 2, '.', '');
-            $data['discount'] = number_format($detail->discount, 2, '.', '');
+            //         $productsVariants = ProductVariant::where('product_id', $detail->product_id)
+            //             ->where('id', $detail->product_variant_id)->first();
 
-            if ($detail->tax_method == '1') {
-                $data['Net_price'] = $detail->price - $data['DiscountNet'];
-                $data['taxe'] = number_format($tax_price, 2, '.', '');
-            } else {
-                $data['Net_price'] = ($detail->price - $data['DiscountNet']) / (($detail->TaxNet / 100) + 1);
-                $data['taxe'] = number_format($detail->price - $data['Net_price'] - $data['DiscountNet'], 2, '.', '');
-            }
+            //         $data['code'] = $productsVariants->name . '-' . $detail['product']['code'];
 
-            $data['is_imei'] = $detail['product']['is_imei'];
-            $data['imei_number'] = $detail->imei_number;
+            //     } else {
+            //         $data['code'] = $detail['product']['code'];
+            //     }
 
-            $details[] = $data;
+            //     $data['quantity'] = $detail->quantity;
+            //     $data['total'] = $detail->total;
+            //     $data['name'] = $detail['product']['name'];
+            //     $data['price'] = $detail->price;
+            //     $data['unit_sale'] = $unit->ShortName;
+
+            //     if ($detail->discount_method == '2') {
+            //         $data['DiscountNet'] = $detail->discount;
+            //     } else {
+            //         $data['DiscountNet'] = $detail->price * $detail->discount / 100;
+            //     }
+
+            //     $tax_price = $detail->TaxNet * (($detail->price - $data['DiscountNet']) / 100);
+            //     $data['Unit_price'] = $detail->price;
+            //     $data['discount'] = $detail->discount;
+
+            //     if ($detail->tax_method == '1') {
+            //         $data['Net_price'] = $detail->price - $data['DiscountNet'];
+            //         $data['taxe'] = $tax_price;
+            //     } else {
+            //         $data['Net_price'] = ($detail->price - $data['DiscountNet']) / (($detail->TaxNet / 100) + 1);
+            //         $data['taxe'] = $detail->price - $data['Net_price'] - $data['DiscountNet'];
+            //     }
+
+            //     $data['is_imei'] = $detail['product']['is_imei'];
+            //     $data['imei_number'] = $detail->imei_number;
+
+            //     $details[] = $data;
+            // }
         }
         $settings = Setting::where('deleted_at', '=', null)->first();
         $symbol = $helpers->Get_Currency_Code();
