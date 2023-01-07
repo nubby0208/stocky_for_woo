@@ -246,14 +246,21 @@ class SalesController extends BaseController
                 $item['id'] = $Sale->id;
                 $item['date'] = substr($Sale->date_created,0,10);
                 $item['Ref'] = 'Ref';
-                $item['created_by'] = $Sale->customer_id;
+                $item['created_by'] = 'WooCommerce';
                 $item['statut'] = $Sale->status;
                 $item['shipping_status'] =  $Sale->shipping->state;
                 $item['discount'] = $Sale->discount_total;
                 $item['shipping'] = 'shipping';
                 $item['warehouse_name'] = 'warehouse';
-                $item['client_id'] = 'clientid';
-                $item['client_name'] = 'clientname';
+                $item['client_id'] = $Sale->customer_id;
+
+                // $clientname = '';
+                // if($Sale->customer_id != 0)
+                //     $clientname = $this->customer_name_woo($Sale->customer_id);
+                
+                $clientname = $Sale->billing->first_name . ' ' . $Sale->billing->last_name;
+
+                $item['client_name'] = $clientname;
                 $item['client_email'] = 'clientemail';
                 $item['client_tele'] = 'clientphone';
                 $item['client_code'] = 'clientcode';
@@ -417,6 +424,12 @@ class SalesController extends BaseController
         } while (count($sales) > 0);
         return $all_sales;
     }
+
+    public function customer_name_woo($id){
+        $strId = strval($id);
+        $result = WooCommerce::find('customers/'.$strId);
+        return $result->first_name . ' ' . $result->last_name;
+    } 
 
     //------------- STORE NEW SALE-----------\\
 
