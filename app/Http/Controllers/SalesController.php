@@ -107,6 +107,11 @@ class SalesController extends BaseController
             ->get();
 
         $Sales = $this->sale_list_woo();
+        $last_ref_id = (int)substr($pos_Sales[0]['Ref'],3) + count($Sales);
+        foreach ($Sales as $Sale){
+            $Sale->Ref = 'SL_' . $last_ref_id;
+            $last_ref_id --;
+        }
 
         foreach ($pos_Sales as $Sale) {
             $item = new stdClass();
@@ -245,7 +250,7 @@ class SalesController extends BaseController
             }else{
                 $item['id'] = $Sale->id;
                 $item['date'] = substr($Sale->date_created,0,10);
-                $item['Ref'] = 'Ref';
+                $item['Ref'] = $Sale->Ref;
                 $item['created_by'] = 'WooCommerce';
                 $item['statut'] = $Sale->status;
                 $item['shipping_status'] =  $Sale->shipping->state;
