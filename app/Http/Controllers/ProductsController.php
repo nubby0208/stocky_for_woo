@@ -82,6 +82,16 @@ class ProductsController extends BaseController
             $item['unit'] = $product['unit']->ShortName;
             $item['price'] = $product->price;
 
+            if($product->pos_id != -1){
+                if($product->pos_var_id == -1){
+                    $wooProduct = $this->show_woo($product->pos_id);
+                    $item['price'] = $wooProduct->regular_price;
+                }else{
+                    $variation = $this->show_variation_woo($product->pos_id, $product->pos_var_id);
+                    $item['price'] = $variation->regular_price;
+                }
+            }
+            
             $product_warehouse_data = product_warehouse::where('product_id', $product->id)
                 ->where('deleted_at', '=', null)
                 ->get();
@@ -1540,6 +1550,17 @@ class ProductsController extends BaseController
 
             $item['is_imei'] = $Product->is_imei?true:false;
             $item['not_selling'] = $Product->not_selling?true:false;
+
+            if($Product->pos_id != -1){
+                if($Product->pos_var_id == -1){
+                    $wooProduct = $this->show_woo($Product->pos_id);
+                    $item['price'] = $wooProduct->regular_price;
+                }else{
+                    $variation = $this->show_variation_woo($Product->pos_id, $Product->pos_var_id);
+                    $item['price'] = $variation->regular_price;
+                }
+            }
+
             $product_units = Unit::where('id', $Product->unit_id)
                             ->orWhere('base_unit', $Product->unit_id)
                             ->where('deleted_at', null)
