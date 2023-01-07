@@ -2231,8 +2231,18 @@ class SalesController extends BaseController
         ->where('deleted_at', '=', null)->first();
 
         $url = url('/api/sale_pdf/' . $request->id);
-        $receiverNumber = $sale['client']->phone;
-        $message = "Dear" .' '.$sale['client']->name." \n We are contacting you in regard to a invoice #".$sale->Ref.' '.$url.' '. "that has been created on your account. \n We look forward to conducting future business with you.";
+
+        if($sale){
+            $receiverNumber = $sale['client']->phone;
+            $message = "Dear" .' '.$sale['client']->name." \n We are contacting you in regard to a invoice #".$sale->Ref.' '.$url.' '. "that has been created on your account. \n We look forward to conducting future business with you.";
+        }else{
+            $sale_data = $this->sale_woo($request->id);
+            $clientname = $sale_data->billing->first_name . ' ' . $sale_data->billing->last_name;
+            $sale['client_name'] = $clientname;
+            $sale['client_phone'] = $sale_data->billing->phone;
+            $receiverNumber = $sale['client_phone'];
+            $message = "Dear" .' '.$sale['client_name']." \n We are contacting you in regard to a invoice #... that has been created on your account. \n We look forward to conducting future business with you.";
+        }
 
         //twilio
         if($gateway->title == "twilio"){
