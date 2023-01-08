@@ -97,7 +97,7 @@
 
                 <b-dropdown-item
                   title="Sell Return"
-                  v-if="currentUserPermissions.includes('Sale_Returns_add') && props.row.sale_has_return == 'no'"
+                  v-if="currentUserPermissions.includes('Sale_Returns_add') && props.row.sale_has_return == 'no' && props.row.is_pos"
                   :to="'/app/sales/sale_return/'+props.row.id"
                 >
                   <i class="nav-icon i-Back font-weight-bold mr-2"></i>
@@ -106,7 +106,7 @@
 
                 <b-dropdown-item
                   title="Sell Return"
-                  v-if="currentUserPermissions.includes('Sale_Returns_add') && props.row.sale_has_return == 'yes'"
+                  v-if="currentUserPermissions.includes('Sale_Returns_add') && props.row.sale_has_return == 'yes' && props.row.is_pos"
                   :to="'/app/sale_return/edit/'+props.row.salereturn_id+'/'+props.row.id"
                 >
                   <i class="nav-icon i-Back font-weight-bold mr-2"></i>
