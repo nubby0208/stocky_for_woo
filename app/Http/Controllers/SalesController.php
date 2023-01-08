@@ -273,7 +273,7 @@ class SalesController extends BaseController
                 $item['GrandTotal'] = number_format($Sale->total, 2, '.', '');
                 $item['paid_amount'] = number_format($Sale->total, 2, '.', '');
                 $item['due'] = number_format($Sale->total - $Sale->total, 2, '.', '');
-                $item['payment_status'] = $Sale->status;
+                $item['payment_status'] = 'paid';
                 $item['sale_has_return'] = 'no';
                 $item['is_pos'] = false;
             }
@@ -1287,7 +1287,7 @@ class SalesController extends BaseController
         }else{
             $sale_data = $this->sale_woo($id);
 
-            $sale_details['Ref'] = 'ref';
+            $sale_details['Ref'] = ($id);
             $sale_details['date'] = substr($sale_data->date_created,0,10);
             $sale_details['note'] = 'note';
             $sale_details['statut'] = $sale_data->status;
@@ -1305,7 +1305,7 @@ class SalesController extends BaseController
             $sale_details['GrandTotal'] = number_format($sale_data->total, 2, '.', '');
             $sale_details['paid_amount'] = number_format($sale_data->total, 2, '.', '');
             $sale_details['due'] = number_format($sale_details['GrandTotal'] - $sale_details['paid_amount'], 2, '.', '');
-            $sale_details['payment_status'] = $sale_data->status;
+            $sale_details['payment_status'] = 'paid';
 
             if (SaleReturn::where('sale_id', $id)->where('deleted_at', '=', null)->exists()) {
                 $sellReturn = SaleReturn::where('sale_id', $id)->where('deleted_at', '=', null)->first();
