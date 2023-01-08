@@ -97,7 +97,7 @@
 
                 <b-dropdown-item
                   title="Sell Return"
-                  v-if="currentUserPermissions.includes('Sale_Returns_add') && props.row.sale_has_return == 'no' && props.row.is_pos"
+                  v-if="currentUserPermissions.includes('Sale_Returns_add') && props.row.sale_has_return == 'no'"
                   :to="'/app/sales/sale_return/'+props.row.id"
                 >
                   <i class="nav-icon i-Back font-weight-bold mr-2"></i>
@@ -106,7 +106,7 @@
 
                 <b-dropdown-item
                   title="Sell Return"
-                  v-if="currentUserPermissions.includes('Sale_Returns_add') && props.row.sale_has_return == 'yes' && props.row.is_pos"
+                  v-if="currentUserPermissions.includes('Sale_Returns_add') && props.row.sale_has_return == 'yes'"
                   :to="'/app/sale_return/edit/'+props.row.salereturn_id+'/'+props.row.id"
                 >
                   <i class="nav-icon i-Back font-weight-bold mr-2"></i>
@@ -328,6 +328,23 @@
                         {label: 'Shipped', value: 'shipped'},
                         {label: 'Delivered', value: 'delivered'},
                         {label: 'Cancelled', value: 'cancelled'},
+                      ]"
+              ></v-select>
+            </b-form-group>
+          </b-col>
+
+          <!-- Sold By -->
+          <b-col md="12">
+            <b-form-group :label="$t('Sold_By')">
+              <v-select
+                v-model="Sold_by"
+                :reduce="label => label.value"
+                :placeholder="$t('Sold_By')"
+                :options="
+                      [
+                        {label: 'Website', value: 'website'},
+                        {label: 'POS', value: 'pos'},
+                        {label: 'All', value: 'all'},
                       ]"
               ></v-select>
             </b-form-group>
@@ -826,6 +843,7 @@ export default {
       Filter_Ref: "",
       Filter_date: "",
       Filter_status: "",
+      Sold_by: "all",
       Filter_Payment: "",
       Filter_warehouse: "",
       Filter_shipping:"",
@@ -1163,6 +1181,7 @@ export default {
       this.search = "";
       this.Filter_Client = "";
       this.Filter_status = "";
+      this.Sold_by = "all";
       this.Filter_Payment = "";
       this.Filter_shipping = "";
       this.Filter_Ref = "";
@@ -1321,6 +1340,8 @@ export default {
             this.Filter_Payment +
             "&shipping_status=" +
             this.Filter_shipping +
+            "&sold_by=" +
+            this.Sold_by +
             "&SortField=" +
             this.serverParams.sort.field +
             "&SortType=" +

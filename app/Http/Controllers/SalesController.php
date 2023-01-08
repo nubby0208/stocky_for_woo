@@ -113,42 +113,47 @@ class SalesController extends BaseController
             $last_ref_id --;
         }
 
-        foreach ($pos_Sales as $Sale) {
-            $item = new stdClass();
-            $item->is_pos = true;
-            $item->id = $Sale['id'];
-            $item->date = $Sale['date'];
-            $item->Ref = $Sale['Ref'];
-            $item->created_by = $Sale['user']->username;
-            $item->statut = $Sale['statut'];
-            $item->shipping_status =  $Sale['shipping_status'];
-            $item->discount = $Sale['discount'];
-            $item->shipping = $Sale['shipping'];
-            $item->warehouse_name = $Sale['warehouse']['name'];
-            $item->client_id = $Sale['client']['id'];
-            $item->client_name = $Sale['client']['name'];
-            $item->client_email = $Sale['client']['email'];
-            $item->client_tele = $Sale['client']['phone'];
-            $item->client_code = $Sale['client']['code'];
-            $item->client_adr = $Sale['client']['adresse'];
-            $item->GrandTotal = number_format($Sale['GrandTotal'], 2, '.', '');
-            $item->paid_amount = number_format($Sale['paid_amount'], 2, '.', '');
-            $item->due = number_format($item->GrandTotal - $item->paid_amount, 2, '.', '');
-            $item->payment_status = $Sale['payment_statut'];
-
-
-            $item->salereturn_id = -1;
-            if (SaleReturn::where('sale_id', $Sale['id'])->where('deleted_at', '=', null)->exists()) {
-                $sellReturn = SaleReturn::where('sale_id', $Sale['id'])->where('deleted_at', '=', null)->first();
-                $item->salereturn_id = $sellReturn->id;
-                $item->sale_has_return = 'yes';
-            }else{
-                $item->sale_has_return = 'no';
+        if($request->sold_by != 'website'){
+            if($request->sold_by == 'pos'){
+                $Sales = array();
             }
-            
-            $Sales[] = $item;
+            foreach ($pos_Sales as $Sale) {
+                $item = new stdClass();
+                $item->is_pos = true;
+                $item->id = $Sale['id'];
+                $item->date = $Sale['date'];
+                $item->Ref = $Sale['Ref'];
+                $item->created_by = $Sale['user']->username;
+                $item->statut = $Sale['statut'];
+                $item->shipping_status =  $Sale['shipping_status'];
+                $item->discount = $Sale['discount'];
+                $item->shipping = $Sale['shipping'];
+                $item->warehouse_name = $Sale['warehouse']['name'];
+                $item->client_id = $Sale['client']['id'];
+                $item->client_name = $Sale['client']['name'];
+                $item->client_email = $Sale['client']['email'];
+                $item->client_tele = $Sale['client']['phone'];
+                $item->client_code = $Sale['client']['code'];
+                $item->client_adr = $Sale['client']['adresse'];
+                $item->GrandTotal = number_format($Sale['GrandTotal'], 2, '.', '');
+                $item->paid_amount = number_format($Sale['paid_amount'], 2, '.', '');
+                $item->due = number_format($item->GrandTotal - $item->paid_amount, 2, '.', '');
+                $item->payment_status = $Sale['payment_statut'];
+
+
+                $item->salereturn_id = -1;
+                if (SaleReturn::where('sale_id', $Sale['id'])->where('deleted_at', '=', null)->exists()) {
+                    $sellReturn = SaleReturn::where('sale_id', $Sale['id'])->where('deleted_at', '=', null)->first();
+                    $item->salereturn_id = $sellReturn->id;
+                    $item->sale_has_return = 'yes';
+                }else{
+                    $item->sale_has_return = 'no';
+                }
+                
+                $Sales[] = $item;
+            }
         }
-        
+
         // //Multiple Filter
         // $Filtred = $helpers->filter($Sales, $columns, $param, $request)
         // // Search With Multiple Param
