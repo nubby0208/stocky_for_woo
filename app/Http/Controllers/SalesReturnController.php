@@ -940,107 +940,123 @@ class SalesReturnController extends BaseController
         $view_records = Role::findOrFail($role->id)->inRole('record_view');
         $SaleReturn = Sale::with('details.product.unitSale')
             ->where('deleted_at', '=', null)
-            ->findOrFail($id);
+            ->find($id);
 
         $details = array();
 
-        // Check If User Has Permission view All Records
-        if (!$view_records) {
-            // Check If User->id === SaleReturn->id
-            $this->authorizeForUser($request->user('api'), 'check_record', $SaleReturn);
-        }
-
-        $Return_detail['client_id'] = $SaleReturn->client_id;
-        $Return_detail['warehouse_id'] = $SaleReturn->warehouse_id;
-        $Return_detail['sale_id'] = $SaleReturn->id;
-        $Return_detail['sale_ref'] = $SaleReturn->Ref;
-        $Return_detail['tax_rate'] = 0;
-        $Return_detail['TaxNet'] = 0;
-        $Return_detail['discount'] = 0;
-        $Return_detail['shipping'] = 0;
-        $Return_detail['statut'] = "received";
-        $Return_detail['notes'] = "";
-
-        $detail_id = 0;
-        foreach ($SaleReturn['details'] as $detail) {
-
-            //check if detail has sale_unit_id Or Null
-            if($detail->sale_unit_id !== null){
-                $unit = Unit::where('id', $detail->sale_unit_id)->first();
-                $data['no_unit'] = 1;
-            }else{
-                $product_unit_sale_id = Product::with('unitSale')
-                ->where('id', $detail->product_id)
-                ->first();
-                $unit = Unit::where('id', $product_unit_sale_id['unitSale']->id)->first();
-                $data['no_unit'] = 0;
+        if($SaleReturn){
+            // Check If User Has Permission view All Records
+            if (!$view_records) {
+                // Check If User->id === SaleReturn->id
+                $this->authorizeForUser($request->user('api'), 'check_record', $SaleReturn);
             }
 
-            if ($detail->product_variant_id) {
-                $item_product = product_warehouse::where('product_id', $detail->product_id)
-                    ->where('product_variant_id', $detail->product_variant_id)
-                    ->where('deleted_at', '=', null)
-                    ->where('warehouse_id', $SaleReturn->warehouse_id)
+            $Return_detail['client_id'] = $SaleReturn->client_id;
+            $Return_detail['warehouse_id'] = $SaleReturn->warehouse_id;
+            $Return_detail['sale_id'] = $SaleReturn->id;
+            $Return_detail['sale_ref'] = $SaleReturn->Ref;
+            $Return_detail['tax_rate'] = 0;
+            $Return_detail['TaxNet'] = 0;
+            $Return_detail['discount'] = 0;
+            $Return_detail['shipping'] = 0;
+            $Return_detail['statut'] = "received";
+            $Return_detail['notes'] = "";
+
+            $detail_id = 0;
+            foreach ($SaleReturn['details'] as $detail) {
+
+                //check if detail has sale_unit_id Or Null
+                if($detail->sale_unit_id !== null){
+                    $unit = Unit::where('id', $detail->sale_unit_id)->first();
+                    $data['no_unit'] = 1;
+                }else{
+                    $product_unit_sale_id = Product::with('unitSale')
+                    ->where('id', $detail->product_id)
                     ->first();
+                    $unit = Unit::where('id', $product_unit_sale_id['unitSale']->id)->first();
+                    $data['no_unit'] = 0;
+                }
 
-                $productsVariants = ProductVariant::where('product_id', $detail->product_id)
-                    ->where('id', $detail->product_variant_id)->first();
+                if ($detail->product_variant_id) {
+                    $item_product = product_warehouse::where('product_id', $detail->product_id)
+                        ->where('product_variant_id', $detail->product_variant_id)
+                        ->where('deleted_at', '=', null)
+                        ->where('warehouse_id', $SaleReturn->warehouse_id)
+                        ->first();
 
-                $item_product ? $data['del'] = 0 : $data['del'] = 1;
-                $data['product_variant_id'] = $detail->product_variant_id;
-                $data['code'] = $productsVariants->name . '-' . $detail['product']['code'];
+                    $productsVariants = ProductVariant::where('product_id', $detail->product_id)
+                        ->where('id', $detail->product_variant_id)->first();
 
-            } else {
-                $item_product = product_warehouse::where('product_id', $detail->product_id)
-                    ->where('warehouse_id', $SaleReturn->warehouse_id)
-                    ->where('deleted_at', '=', null)->where('product_variant_id', '=', null)
-                    ->first();
+                    $item_product ? $data['del'] = 0 : $data['del'] = 1;
+                    $data['product_variant_id'] = $detail->product_variant_id;
+                    $data['code'] = $productsVariants->name . '-' . $detail['product']['code'];
 
-                $item_product ? $data['del'] = 0 : $data['del'] = 1;
-                $data['product_variant_id'] = null;
-                $data['code'] = $detail['product']['code'];
-              
+                } else {
+                    $item_product = product_warehouse::where('product_id', $detail->product_id)
+                        ->where('warehouse_id', $SaleReturn->warehouse_id)
+                        ->where('deleted_at', '=', null)->where('product_variant_id', '=', null)
+                        ->first();
 
+                    $item_product ? $data['del'] = 0 : $data['del'] = 1;
+                    $data['product_variant_id'] = null;
+                    $data['code'] = $detail['product']['code'];
+                
+
+                }
+
+                $data['id'] = $detail->id;
+                $data['detail_id'] = $detail_id += 1;
+                $data['quantity'] = 0;
+                $data['sale_quantity'] = $detail->quantity;
+                $data['product_id'] = $detail->product_id;
+                $data['name'] = $detail['product']['name'];
+                $data['unitSale'] = $unit->ShortName;
+                $data['sale_unit_id'] = $unit->id;
+                $data['is_imei'] = $detail['product']['is_imei'];
+                $data['imei_number'] = $detail->imei_number;
+
+                if ($detail->discount_method == '2') {
+                    $data['DiscountNet'] = $detail->discount;
+                } else {
+                    $data['DiscountNet'] = $detail->price * $detail->discount / 100;
+                }
+
+                $tax_price = $detail->TaxNet * (($detail->price - $data['DiscountNet']) / 100);
+                $data['Unit_price'] = $detail->price;
+                $data['tax_percent'] = $detail->TaxNet;
+                $data['tax_method'] = $detail->tax_method;
+                $data['discount'] = $detail->discount;
+                $data['discount_Method'] = $detail->discount_method;
+
+                if ($detail->tax_method == '1') {
+
+                    $data['Net_price'] = $detail->price - $data['DiscountNet'];
+                    $data['taxe'] = $tax_price;
+                    $data['subtotal'] = ($data['Net_price'] * $data['quantity']) + ($tax_price * $data['quantity']);
+                } else {
+                    $data['Net_price'] = ($detail->price - $data['DiscountNet']) / (($detail->TaxNet / 100) + 1);
+                    $data['taxe'] = $detail->price - $data['Net_price'] - $data['DiscountNet'];
+                    $data['subtotal'] = ($data['Net_price'] * $data['quantity']) + ($tax_price * $data['quantity']);
+                }
+
+                $details[] = $data;
             }
+        }else{
+            $SaleReturn = $this->sale_woo($id);
 
-            $data['id'] = $detail->id;
-            $data['detail_id'] = $detail_id += 1;
-            $data['quantity'] = 0;
-            $data['sale_quantity'] = $detail->quantity;
-            $data['product_id'] = $detail->product_id;
-            $data['name'] = $detail['product']['name'];
-            $data['unitSale'] = $unit->ShortName;
-            $data['sale_unit_id'] = $unit->id;
-            $data['is_imei'] = $detail['product']['is_imei'];
-            $data['imei_number'] = $detail->imei_number;
+            $Return_detail['client_id'] = $SaleReturn->customer_id;
+            $Return_detail['warehouse_id'] = 1;
+            $Return_detail['sale_id'] = $SaleReturn->id;
+            $Return_detail['sale_ref'] = 'SL_' . $SaleReturn->id;
+            $Return_detail['tax_rate'] = 0;
+            $Return_detail['TaxNet'] = 0;
+            $Return_detail['discount'] = 0;
+            $Return_detail['shipping'] = 0;
+            $Return_detail['statut'] = "received";
+            $Return_detail['notes'] = "";
 
-            if ($detail->discount_method == '2') {
-                $data['DiscountNet'] = $detail->discount;
-            } else {
-                $data['DiscountNet'] = $detail->price * $detail->discount / 100;
-            }
-
-            $tax_price = $detail->TaxNet * (($detail->price - $data['DiscountNet']) / 100);
-            $data['Unit_price'] = $detail->price;
-            $data['tax_percent'] = $detail->TaxNet;
-            $data['tax_method'] = $detail->tax_method;
-            $data['discount'] = $detail->discount;
-            $data['discount_Method'] = $detail->discount_method;
-
-            if ($detail->tax_method == '1') {
-
-                $data['Net_price'] = $detail->price - $data['DiscountNet'];
-                $data['taxe'] = $tax_price;
-                $data['subtotal'] = ($data['Net_price'] * $data['quantity']) + ($tax_price * $data['quantity']);
-            } else {
-                $data['Net_price'] = ($detail->price - $data['DiscountNet']) / (($detail->TaxNet / 100) + 1);
-                $data['taxe'] = $detail->price - $data['Net_price'] - $data['DiscountNet'];
-                $data['subtotal'] = ($data['Net_price'] * $data['quantity']) + ($tax_price * $data['quantity']);
-            }
-
-            $details[] = $data;
+            $detail_id = 0;
         }
-
 
         return response()->json([
             'details' => $details,
@@ -1048,7 +1064,10 @@ class SalesReturnController extends BaseController
         ]);
 
     }
-
+    public function sale_woo($id){
+        $result = WooCommerce::find('orders/'.$id);
+        return $result;
+    } 
     //------------- Sale Return PDF-----------\\
 
     public function Return_pdf(Request $request, $id)
