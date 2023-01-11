@@ -206,6 +206,36 @@ class PurchasesController extends BaseController
                     'imei_number' => $value['imei_number'],
                 ];
 
+                $product_warehouse_data = product_warehouse::where('product_id', $value['product_id'])
+                    ->where('deleted_at', '=', null)
+                    ->get();
+                $total_qty = 0;
+                foreach ($product_warehouse_data as $product_warehouse) {
+                    $total_qty += $product_warehouse->qte;
+                }
+
+                $Product = Product::where('id', $value['product_id'])
+                    ->where('deleted_at', '=', null)
+                    ->first();
+
+                if($Product->pos_id != -1){
+                    if($Product->pos_var_id == -1){
+                        $data = [
+                            'manage_stock' => true,
+                            'stock_quantity' => $total_qty,
+                        ];
+            
+                        $product = $this->update_product_woo($Product->pos_id, $data);
+                    }else{
+                        $data = [
+                            'manage_stock' => true,
+                            'stock_quantity' => $total_qty,
+                        ];
+
+                        $product = $this->update_product_variation_woo($Product->pos_id, $Product->pos_var_id, $data);
+                    }
+                }
+
                 if ($order->statut == "received") {
                     if ($value['product_variant_id'] !== null) {
                         $product_warehouse = product_warehouse::where('deleted_at', '=', null)
