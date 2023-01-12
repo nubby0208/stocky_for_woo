@@ -142,10 +142,9 @@ class ClientController extends BaseController
     {
         $this->authorizeForUser($request->user('api'), 'update', Client::class);
         $this->validate($request, [
-            
-            'name' => 'required',
-        ]
-    );
+                'name' => 'required',
+            ]
+        );
 
         Client::whereId($id)->update([
             'name' => $request['name'],
@@ -157,7 +156,6 @@ class ClientController extends BaseController
             'tax_number' => $request['tax_number'],
         ]);
         return response()->json(['success' => true]);
-
     }
 
     //------------- delete client -------------\\
