@@ -81,58 +81,95 @@ class ProductsController extends BaseController
             $item['brand'] = $product['brand'] ? $product['brand']->name : 'N/D';
             $item['unit'] = $product['unit']->ShortName;
             $item['price'] = $product->price;
-
+            
+            $is_woo_product_deleted = false;
             if($product->pos_id != -1){
                 if($product->pos_var_id == -1){
-                    $wooProduct = $this->show_woo($product->pos_id);
-                    $item['price'] = $wooProduct->regular_price;
+                    try{
+                        $wooProduct = $this->show_woo($product->pos_id);
+                        if($wooProduct->status == 'publish')
+                            $item['price'] = $wooProduct->regular_price;
+                        else
+                            $is_woo_product_deleted = true;
+                    }catch(HttpClientException $e){
+                        $is_woo_product_deleted = true;
+                    }
                 }else{
-                    $variation = $this->show_variation_woo($product->pos_id, $product->pos_var_id);
-                    $item['price'] = $variation->regular_price;
+                    try{
+                        $variation = $this->show_variation_woo($product->pos_id, $product->pos_var_id);
+                        if($variation->status == 'publish')
+                            $item['price'] = $variation->regular_price;
+                        else
+                            $is_woo_product_deleted = true;
+                    }catch(HttpClientException $e){
+                        $is_woo_product_deleted = true;
+                    }
                 }
             }
             
-            $product_warehouse_data = product_warehouse::where('product_id', $product->id)
-                ->where('deleted_at', '=', null)
-                ->get();
-            $total_qty = 0;
-            foreach ($product_warehouse_data as $product_warehouse) {
-                $total_qty += $product_warehouse->qte;
-                $item['quantity'] = $total_qty;
-            }
+            if(!$is_woo_product_deleted){
+                $product_warehouse_data = product_warehouse::where('product_id', $product->id)
+                    ->where('deleted_at', '=', null)
+                    ->get();
+                $total_qty = 0;
+                foreach ($product_warehouse_data as $product_warehouse) {
+                    $total_qty += $product_warehouse->qte;
+                    $item['quantity'] = $total_qty;
+                }
 
-            if($product->pos_id != -1){
-                if($product->pos_var_id == -1){
-                    $woo_product = $this->show_woo($product->pos_id);
-                    if($woo_product->stock_quantity){
-                        if($woo_product->stock_quantity != $total_qty){
-                            $product_warehouse = product_warehouse::where('product_id', $product->id)
-                                ->where('deleted_at', '=', null)
-                                ->first();
-                            $product_warehouse->qte += $woo_product->stock_quantity - $total_qty;
-                            $product_warehouse->save();
-                            $item['quantity'] = $woo_product->stock_quantity;
+                if($product->pos_id != -1){
+                    if($product->pos_var_id == -1){
+                        $woo_product = $this->show_woo($product->pos_id);
+                        if($woo_product->stock_quantity){
+                            if($woo_product->stock_quantity != $total_qty){
+                                $product_warehouse = product_warehouse::where('product_id', $product->id)
+                                    ->where('deleted_at', '=', null)
+                                    ->first();
+                                $product_warehouse->qte += $woo_product->stock_quantity - $total_qty;
+                                $product_warehouse->save();
+                                $item['quantity'] = $woo_product->stock_quantity;
+                            }
                         }
-                    }
-                }else{
-                    $woo_product = $this->show_variation_woo($product->pos_id, $product->pos_var_id);
-                    if($woo_product->stock_quantity){
-                        if($woo_product->stock_quantity != $total_qty){
-                            $product_warehouse = product_warehouse::where('product_id', $product->id)
-                                ->where('deleted_at', '=', null)
-                                ->first();
-                            $product_warehouse->qte += $woo_product->stock_quantity - $total_qty;
-                            $product_warehouse->save();
-                            $item['quantity'] = $woo_product->stock_quantity;
+                    }else{
+                        $woo_product = $this->show_variation_woo($product->pos_id, $product->pos_var_id);
+                        if($woo_product->stock_quantity){
+                            if($woo_product->stock_quantity != $total_qty){
+                                $product_warehouse = product_warehouse::where('product_id', $product->id)
+                                    ->where('deleted_at', '=', null)
+                                    ->first();
+                                $product_warehouse->qte += $woo_product->stock_quantity - $total_qty;
+                                $product_warehouse->save();
+                                $item['quantity'] = $woo_product->stock_quantity;
+                            }
                         }
                     }
                 }
+
+                $firstimage = explode(',', $product->image);
+                $item['image'] = $firstimage[0];
+                
+                $data[] = $item;
+            }else{
+                $product->deleted_at = Carbon::now();
+                $product->save();
+
+                foreach (explode(',', $product->image) as $img) {
+                    $pathIMG = public_path() . '/images/products/' . $img;
+                    if (file_exists($pathIMG)) {
+                        if ($img != 'no-image.png') {
+                            @unlink($pathIMG);
+                        }
+                    }
+                }
+
+                product_warehouse::where('product_id', $product->id)->update([
+                    'deleted_at' => Carbon::now(),
+                ]);
+
+                ProductVariant::where('product_id', $product->id)->update([
+                    'deleted_at' => Carbon::now(),
+                ]);
             }
-
-            $firstimage = explode(',', $product->image);
-            $item['image'] = $firstimage[0];
-
-            $data[] = $item;
         }
 
         //get warehouses assigned to user
@@ -956,15 +993,42 @@ class ProductsController extends BaseController
     public function destroy(Request $request, $id)
     {
         $this->authorizeForUser($request->user('api'), 'delete', Product::class);
-        $success = true;
-        try{
-            $this->delete_product_woo($id);
-        }catch(HttpClientException $e){
-            $success = false;
-        }
+        // $success = true;
+        
 
-        return response()->json(['success' => $success]);
+        \DB::transaction(function () use ($id) {
 
+            $Product = Product::findOrFail($id);
+            $Product->deleted_at = Carbon::now();
+            $Product->save();
+
+            foreach (explode(',', $Product->image) as $img) {
+                $pathIMG = public_path() . '/images/products/' . $img;
+                if (file_exists($pathIMG)) {
+                    if ($img != 'no-image.png') {
+                        @unlink($pathIMG);
+                    }
+                }
+            }
+
+            product_warehouse::where('product_id', $id)->update([
+                'deleted_at' => Carbon::now(),
+            ]);
+
+            ProductVariant::where('product_id', $id)->update([
+                'deleted_at' => Carbon::now(),
+            ]);
+
+            if($Product->pos_id != -1){
+                if($Product->pos_var_id == -1){
+                    $this->delete_product_woo($Product->pos_id);
+                }else{
+                    $this->delete_product_woo($Product->pos_var_id);
+                }
+            }
+
+        }, 10);
+        return response()->json(['success' => true]);
     }
 
     //-------------- Delete by selection  ---------------\\
@@ -997,6 +1061,14 @@ class ProductsController extends BaseController
                 ProductVariant::where('product_id', $product_id)->update([
                     'deleted_at' => Carbon::now(),
                 ]);
+
+                if($Product->pos_id != -1){
+                    if($Product->pos_var_id == -1){
+                        $this->delete_product_woo($Product->pos_id);
+                    }else{
+                        $this->delete_product_woo($Product->pos_var_id);
+                    }
+                }
             }
 
         }, 10);
