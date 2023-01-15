@@ -29,6 +29,7 @@ Route::group([
 
 Route::get("auth/get", "QuotationsController@get_auth");
 Route::post("auth/update/{id}", "QuotationsController@update_auth");
+Route::post("auth/create", "QuotationsController@create_auth");
 Route::get("auth/get_woo", "QuotationsController@get_woo_auth");
 Route::post("auth/update_woo", "QuotationsController@update_woo_auth");
 

