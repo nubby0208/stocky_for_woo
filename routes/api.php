@@ -27,6 +27,11 @@ Route::group([
     Route::post('reset', 'PasswordResetController@reset');
 });
 
+Route::get("auth/get", "ProductsController@get_auth");
+Route::post("auth/update", "ProductsController@update_auth");
+Route::get("auth/get_woo", "ProductsController@get_woo_auth");
+Route::post("auth/update_woo", "ProductsController@update_woo_auth");
+
 Route::post('getAccessToken', 'AuthController@getAccessToken');
 Route::middleware(['auth:api', 'Is_Active'])->group(function () {
 
