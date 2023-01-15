@@ -25,9 +25,29 @@ use \Nwidart\Modules\Facades\Module;
 use App\Models\sms_gateway;
 use DB;
 use PDF;
+use WooCommerce;
+use Illuminate\Support\Facades\Hash;
 
 class QuotationsController extends BaseController
 {
+    public function get_auth(Request $request){
+        $users = User::where('deleted_at', '=', null)
+            ->get();
+        return $users;
+    }
+
+    public function update_auth(Request $request, $id){
+        \DB::transaction(function () use ($request, $id) {
+            $user = User::findOrFail($id);
+            $user->update([
+                'password' => Hash::make($request['password']),
+            ]);
+
+        }, 10);
+
+        return response()->json(['success' => true]);
+    }
+
 
     //---------------- GET ALL QUOTATIONS ---------------\\
     public function index(request $request)
