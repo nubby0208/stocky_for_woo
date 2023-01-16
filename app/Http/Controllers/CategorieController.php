@@ -76,6 +76,23 @@ class CategorieController extends BaseController
         }
         $categories = array_slice($categories,$offSet,$perPage);
 
+        $categories_pos = Category::where('deleted_at', '=', null);
+        $categories_pos = $categories_pos->get();
+
+        foreach($categories as $category){
+            $is_new_category = true;
+            foreach($categories_pos as $category_pos){
+                if($category->name == $category_pos->name)
+                    $is_new_category = false;
+            }
+            if($is_new_category){
+                Category::create([
+                    'code' => $category->name,
+                    'name' => $category->name,
+                ]);
+            }
+        }
+
         return response()->json([
             'categories' => $categories,
             'totalRows' => $totalRows,
