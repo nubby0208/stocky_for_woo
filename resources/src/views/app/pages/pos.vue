@@ -1159,22 +1159,13 @@
 
                 <!-- Customer Email -->
                 <b-col md="6" sm="12">
-                  <validation-provider
-                    name="Email customer"
-                    :rules="{ required: true}"
-                    v-slot="validationContext"
-                  >
-                    <b-form-group :label="$t('Email') + ' ' + '*'">
-                      <b-form-input
-                        :state="getValidationState(validationContext)"
-                        aria-describedby="Email-feedback"
-                        label="Email"
-                        v-model="client.email"
-                         :placeholder="$t('Email')"
-                      ></b-form-input>
-                      <b-form-invalid-feedback id="Email-feedback">{{ validationContext.errors[0] }}</b-form-invalid-feedback>
-                    </b-form-group>
-                  </validation-provider>
+                  <b-form-group :label="$t('Email')">
+                    <b-form-input
+                      label="Email"
+                      v-model="client.email"
+                      :placeholder="$t('Email')"
+                    ></b-form-input>
+                  </b-form-group>
                 </b-col>
 
                 <!-- Customer Phone -->
